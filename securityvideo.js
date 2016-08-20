@@ -29,7 +29,7 @@ function getLatestVideosbyCamera(camera_name, token) {
 
         success: function( result ) {
             console.log(result);
-            displayLatestVideos(result.Items)
+            jQuery.data(document.body, camera_name, result)
         }
     });
 }
@@ -45,7 +45,14 @@ function getCameraList(token) {
         success: function( result ) {
             console.log(result);
             jQuery.data(document.body, 'cameras', result);
+            loadCameraVids(result, token);
         }
+    });
+}
+
+function loadCameraVids(cameras, token) {
+    cameras.forEach(function(cam) {
+         getLatestVideosbyCamera(cam, token);
     });
 }
 
@@ -59,7 +66,7 @@ function displayLatestVideos(videoItems) {
             "   <button type='button' onclick='playVideo(\"" + item.uri + "\")'>Play Now</button>" +
             "   <a href='" + item.uri + "' target='_blank'>download now</a><br/>";
         $("#latest-videos").append(thtml);
-    })
+    });
 
 }
 
