@@ -44,6 +44,7 @@ function getCameraList(token) {
 
         success: function( result ) {
             console.log(result);
+            jQuery.data(document.body, 'cameras', result);
         }
     });
 }

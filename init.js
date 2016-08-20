@@ -2,6 +2,8 @@
  * Created by brian.roy on 8/20/16.
  */
 
+
+
 function onSignIn(googleUser) {
     var profile = googleUser.getBasicProfile();
     console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
@@ -10,6 +12,7 @@ function onSignIn(googleUser) {
     console.log('Email: ' + profile.getEmail());
     var auth_resp = googleUser.getAuthResponse();
     document.getElementById('usrimg').src=profile.getImageUrl();
+    jQuery.data(document.body, 'authData', auth_resp);
     getLatestVideos(auth_resp.id_token);
     getCameraList(auth_resp.id_token);
 
