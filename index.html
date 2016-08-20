@@ -1,0 +1,47 @@
+<html>
+<head>
+    <meta name="google-signin-client_id" content="522648161569-ne8ldk1h7bcf2mh15ogrf2ltsc75bvlk.apps.googleusercontent.com">
+    <script src="aws-sdk.js"></script>
+    <script src="jquery-3.1.0.js"></script>
+    <script src="securityvideo.js"></script>
+    <script src="https://apis.google.com/js/platform.js" async defer></script>
+</head>
+<body>
+    <div id='usrimgdiv'><image id='usrimg' src=""></image><div/>
+    </div><div class="g-signin2" data-onsuccess="onSignIn"></div>
+    <a href="#" onclick="signOut();">Sign out</a>
+    <div id='latest-videos'></div>
+    <div id='current-video'></div>
+
+
+    <script type="text/javascript">
+        function onSignIn(googleUser) {
+            var profile = googleUser.getBasicProfile();
+            console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
+            console.log('Name: ' + profile.getName());
+            console.log('Image URL: ' + profile.getImageUrl());
+            console.log('Email: ' + profile.getEmail());
+            var auth_resp = googleUser.getAuthResponse();
+            document.getElementById('usrimg').src=profile.getImageUrl();
+            getLatestVideos(auth_resp.id_token);
+            getCameraList(auth_resp.id_token);
+
+        }
+    </script>
+    <script>
+        function signOut() {
+            var auth2 = gapi.auth2.getAuthInstance();
+            auth2.signOut().then(function () {
+                console.log('User signed out.');
+            });
+        }
+    </script>
+
+
+</body>
+</html>
+
+
+
+
+
