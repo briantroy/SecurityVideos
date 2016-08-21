@@ -5,16 +5,50 @@
 var base_api_uri = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com/securityvideos';
 
 function getLatestVideos(token) {
+    var dateObj = new Date();
+    var month = dateObj.getMonth() + 1;
+    var day = dateObj.getDate();
+    var year = dateObj.getFullYear();
+    if(month < 10) month = "0" + month;
+    if(day < 10) day = "0" + day;
+    var datestring = year + "-" + month + "-" + day;
+
     $.ajax({
         url: base_api_uri + "/lastfive",
         crossDomain: true,
         headers: {
             "Authorization":token
         },
+        data: {
+            "video_date" : datestring
+        },
 
         success: function( result ) {
             console.log(result);
-            displayLatestVideos(result.Items)
+            if(result.Items.length == 0) {
+                // Previous Date
+                day = day - 1;
+                datestring = year + "-" + month + "-" + day;
+                $.ajax({
+                    url: base_api_uri + "/lastfive",
+                    crossDomain: true,
+                    headers: {
+                        "Authorization":token
+                    },
+                    data: {
+                        "video_date" : datestring
+                    },
+
+                    success: function( result ) {
+                        console.log(result);
+                        displayLatestVideos(result.Items);
+                        jQuery.data(document.body, 'latest', result.Items);
+                    }
+                });
+            } else {
+                displayLatestVideos(result.Items);
+                jQuery.data(document.body, 'latest', result.Items);
+            }
         }
     });
 }
@@ -29,7 +63,7 @@ function getLatestVideosbyCamera(camera_name, token) {
 
         success: function( result ) {
             console.log(result);
-            jQuery.data(document.body, camera_name, result)
+            jQuery.data(document.body, camera_name, result.Items);
         }
     });
 }
@@ -44,7 +78,7 @@ function getCameraList(token) {
 
         success: function( result ) {
             console.log(result);
-            jQuery.data(document.body, 'cameras', result);
+            jQuery.data(document.body, 'cameras', result.Items);
             loadCameraVids(result, token);
         }
     });
