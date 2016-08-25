@@ -2,7 +2,7 @@
  * Created by brian.roy on 8/20/16.
  */
 
-
+var camlist;
 
 function onSignIn(googleUser) {
     var profile = googleUser.getBasicProfile();
@@ -13,6 +13,9 @@ function onSignIn(googleUser) {
     var auth_resp = googleUser.getAuthResponse();
     document.getElementById('usrimg').src=profile.getImageUrl();
     jQuery.data(document.body, 'authData', auth_resp);
+    var tHTML = "<button type='button' onclick='refreshVideos(\"" + auth_resp.id_token + "\")'>Refresh</button>";
+    tHTML += "<button type='button' onclick='showTimeline(\"latest\")'>latest</button>";
+    $("#list-controls").append(tHTML);
     getLatestVideos(auth_resp.id_token);
     getCameraList(auth_resp.id_token);
 

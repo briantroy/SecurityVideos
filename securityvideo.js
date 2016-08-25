@@ -46,7 +46,7 @@ function getLatestVideos(token) {
                     }
                 });
             } else {
-                displayLatestVideos(result.Items);
+                displayLatestVideos(result.Items, 'video-timeline');
                 jQuery.data(document.body, 'latest', result.Items);
             }
         }
@@ -64,6 +64,13 @@ function getLatestVideosbyCamera(camera_name, token) {
         success: function( result ) {
             console.log(result);
             jQuery.data(document.body, camera_name, result.Items);
+            if(result.Items.length > 0) {
+                $("#latest-videos").append("<div id='" + camera_name + "-timeline'></div>");
+                $("#" + camera_name + "-timeline").hide();
+                $("#list-controls").append("<button type='button' onclick='showTimeline(\"" + camera_name +
+                    "\")'>Show " + camera_name + "</button>");
+                displayLatestVideos(result.Items, camera_name + "-timeline");
+            }
         }
     });
 }
@@ -78,7 +85,7 @@ function getCameraList(token) {
 
         success: function( result ) {
             console.log(result);
-            jQuery.data(document.body, 'cameras', result.Items);
+            camlist = result;
             loadCameraVids(result, token);
         }
     });
@@ -86,22 +93,48 @@ function getCameraList(token) {
 
 function loadCameraVids(cameras, token) {
     cameras.forEach(function(cam) {
-         getLatestVideosbyCamera(cam, token);
+        getLatestVideosbyCamera(cam, token);
     });
 }
 
 
-function displayLatestVideos(videoItems) {
-    $("#latest-videos").empty();
+function displayLatestVideos(videoItems, targetDiv) {
+    targetDiv = "#" + targetDiv;
+    $(targetDiv).empty();
+
 
     videoItems.forEach(function(item) {
         var video_ts = new Date((item.event_ts * 1000));
         var thtml = "Video for " + item.camera_name + " at " + video_ts.toLocaleString() +
             "   <button type='button' onclick='playVideo(\"" + item.uri + "\")'>Play Now</button>" +
             "   <a href='" + item.uri + "' target='_blank'>download now</a><br/>";
-        $("#latest-videos").append(thtml);
+        $(targetDiv).append(thtml);
     });
 
+}
+
+function showTimeline(scope) {
+    // Start by hiding all the camera divs
+    $("#video-timeline").hide();
+    var divname = "";
+    camlist.forEach(function(camera) {
+        divname = "#" + camera + "-timeline";
+        $(divname).hide();
+    });
+
+    if(scope =='latest') {
+        $("#video-timeline").show();
+
+    } else {
+        // Camera name
+        divname = "#" + scope + "-timeline";
+        $(divname).show();
+    }
+}
+
+function refreshVideos(token) {
+    $("#current-video").empty();
+    getLatestVideos(token);
 }
 
 function playVideo(uri) {
