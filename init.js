@@ -4,18 +4,25 @@
 
 var camlist;
 
+
+$( document ).ready(function() {
+    $(".navigation").hide();
+    $("#usrimg").hide();
+    $("#log-out").hide();
+    $("#video-container").hide();
+    $("#page-nav").hide();
+
+});
+
 function onSignIn(googleUser) {
     var profile = googleUser.getBasicProfile();
-    console.log('ID: ' + profile.getId()); // Do not send to your backend! Use an ID token instead.
-    console.log('Name: ' + profile.getName());
-    console.log('Image URL: ' + profile.getImageUrl());
-    console.log('Email: ' + profile.getEmail());
     var auth_resp = googleUser.getAuthResponse();
     document.getElementById('usrimg').src=profile.getImageUrl();
     jQuery.data(document.body, 'authData', auth_resp);
-    var tHTML = "<button type='button' onclick='refreshVideos(\"" + auth_resp.id_token + "\")'>Refresh</button>";
-    tHTML += "<button type='button' onclick='showTimeline(\"latest\")'>latest</button>";
-    $("#list-controls").append(tHTML);
+    $(".navigation").show();
+    $("#usrimg").show();
+    $("#log-out").show();
+    $(".g-signin2").hide();
     getLatestVideos(auth_resp.id_token);
     getCameraList(auth_resp.id_token);
 
@@ -24,7 +31,12 @@ function onSignIn(googleUser) {
 function signOut() {
     var auth2 = gapi.auth2.getAuthInstance();
     auth2.signOut().then(function () {
-        console.log('User signed out.');
+        $(".video-list").remove();
+        $(".navigation").hide();
+        $(".g-signin2").show();
+        $("#usrimg").hide();
+        $("#log-out").hide();
     });
 }
+
 

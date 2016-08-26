@@ -1,0 +1,52 @@
+#page-nav {
+    margin-left: 20px;
+}
+#camera-menu { list-style: none; }
+#camera-menu a {
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+}
+#camera-menu a:hover {
+    color: #222222;
+}
+#camera-menu li {
+    margin: 15px;
+    border-bottom: 1px solid deepskyblue;
+}
+.video-row {
+    border-bottom: 1px solid deepskyblue;
+    margin-top: 10px;
+}
+.identity {
+    border-bottom: 1px solid deepskyblue;
+}
+#usrimg {
+    display: block;
+}
+#log-out {
+    display: block;
+}
+.g-signin2 {
+    margin-bottom: 10px;
+}
+#video-container {
+    z-index: 10;
+    width:1280px;
+    height:760px;
+    margin: 0 auto;
+    background: #f7f7f7;
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    margin-left: -640px;
+    margin-top: -370px;
+    background-color: darkslategrey;
+}
+a.video-control {
+    display: block;
+    text-align: center;
+    vertical-align: top;
+    color: white;
+    font-weight: bolder;
+}

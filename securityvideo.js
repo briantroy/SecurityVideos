@@ -24,7 +24,7 @@ function getLatestVideos(token) {
         },
 
         success: function( result ) {
-            console.log(result);
+
             if(result.Items.length == 0) {
                 // Previous Date
                 day = day - 1;
@@ -40,7 +40,7 @@ function getLatestVideos(token) {
                     },
 
                     success: function( result ) {
-                        console.log(result);
+
                         displayLatestVideos(result.Items);
                         jQuery.data(document.body, 'latest', result.Items);
                     }
@@ -62,13 +62,15 @@ function getLatestVideosbyCamera(camera_name, token) {
         },
 
         success: function( result ) {
-            console.log(result);
+
             jQuery.data(document.body, camera_name, result.Items);
             if(result.Items.length > 0) {
-                $("#latest-videos").append("<div id='" + camera_name + "-timeline'></div>");
+                $(".container").append("<div id='" + camera_name + "-timeline' class='row video-list'" +
+                    "style='margin-top 25px;'></div>");
                 $("#" + camera_name + "-timeline").hide();
-                $("#list-controls").append("<button type='button' onclick='showTimeline(\"" + camera_name +
-                    "\")'>Show " + camera_name + "</button>");
+                thtml = "<li><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>"  + camera_name + "</a></li>";
+
+                $("ul#camera-menu").append(thtml);
                 displayLatestVideos(result.Items, camera_name + "-timeline");
             }
         }
@@ -84,7 +86,7 @@ function getCameraList(token) {
         },
 
         success: function( result ) {
-            console.log(result);
+
             camlist = result;
             loadCameraVids(result, token);
         }
@@ -105,15 +107,15 @@ function displayLatestVideos(videoItems, targetDiv) {
 
     videoItems.forEach(function(item) {
         var video_ts = new Date((item.event_ts * 1000));
-        var thtml = "Video for " + item.camera_name + " at " + video_ts.toLocaleString() +
-            "   <button type='button' onclick='playVideo(\"" + item.uri + "\")'>Play Now</button>" +
-            "   <a href='" + item.uri + "' target='_blank'>download now</a><br/>";
+        var thtml = "<div class='row video-row'><div class='four columns'>" + item.camera_name + " at " + video_ts.toLocaleString() +
+            "   </div><div class='three columns'><button type='button' onclick='playVideo(\"" + item.uri + "\")'>Play Now</button></div></div>";
         $(targetDiv).append(thtml);
     });
 
 }
 
 function showTimeline(scope) {
+    $("#current-video").empty();
     // Start by hiding all the camera divs
     $("#video-timeline").hide();
     var divname = "";
@@ -130,6 +132,7 @@ function showTimeline(scope) {
         divname = "#" + scope + "-timeline";
         $(divname).show();
     }
+    clickMenu();
 }
 
 function refreshVideos(token) {
@@ -138,7 +141,22 @@ function refreshVideos(token) {
 }
 
 function playVideo(uri) {
-    var thtml = "<video src='" + uri + "' controls autoplay></video>";
+    var thtml = "<video src='" + uri + "' controls></video>";
     $("#current-video").empty();
     $("#current-video").append(thtml);
+    $("#video-container").show();
+}
+
+function closeVideo() {
+    $("#current-video").empty();
+    $("#video-container").hide();
+}
+
+function clickMenu() {
+    $(".hamburger").toggleClass("is-active");
+    if ($("#page-nav").is(":visible")) {
+        $("#page-nav").hide();
+    } else {
+        $("#page-nav").show();
+    }
 }

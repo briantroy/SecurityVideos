@@ -1,25 +1,75 @@
-<html>
+<!DOCTYPE html>
+<html lang="en">
 <head>
-    <meta name="google-signin-client_id" content="522648161569-ne8ldk1h7bcf2mh15ogrf2ltsc75bvlk.apps.googleusercontent.com">
-    <script src="aws-sdk.js"></script>
-    <script src="init.js"></script>
-    <script src="jquery-3.1.0.js"></script>
-    <script src="securityvideo.js"></script>
-    <script src="https://apis.google.com/js/platform.js" async defer></script>
+
+  <!-- Basic Page Needs
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta charset="utf-8">
+  <title>Your page title here :)</title>
+  <meta name="description" content="">
+  <meta name="author" content="">
+
+  <!-- Mobile Specific Metas
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- FONT
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link href="//fonts.googleapis.com/css?family=Raleway:400,300,600" rel="stylesheet" type="text/css">
+
+  <!-- CSS
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="stylesheet" href="css/securityvideos.css">
+  <link rel="stylesheet" href="css/normalize.css">
+  <link rel="stylesheet" href="css/skeleton.css">
+  <link rel="stylesheet" href="css/hamburgers.css">
+
+  <!-- Favicon
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <link rel="icon" type="image/png" href="images/favicon.png">
+
+  <meta name="google-signin-client_id" content="522648161569-ne8ldk1h7bcf2mh15ogrf2ltsc75bvlk.apps.googleusercontent.com">
+  <script src="aws-sdk.js"></script>
+  <script src="jquery-3.1.0.js"></script>
+  <script src="securityvideo.js"></script>
+  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <script src="init.js"></script>
+
 </head>
 <body>
-    <div id='usrimgdiv'><image id='usrimg' src=""></image><div/>
-    </div><div class="g-signin2" data-onsuccess="onSignIn"></div>
-    <a href="#" onclick="signOut();">Sign out</a>
-    <div id='latest-videos'>
-        <div id="list-controls"></div>
-        <div id='video-timeline'></div>
+
+  <!-- Primary Page Layout
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
+  <div class="container">
+    <div class="row identity" style="margin-top: 45px;">
+        <image id='usrimg' src=""></image>
+        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <button id='log-out' type='button' onclick="signOut();">Sign out</button>
     </div>
-    <div id='current-video'></div>
+    <div class="row navigation" style="margin-top: 25px;">
+      <button class="hamburger hamburger--collapse" type="button" onclick="clickMenu()">
+        <span class="hamburger-box">
+          <span class="hamburger-inner"></span>
+        </span>
+      </button>
+      <nav id="page-nav">
+        <ul id="camera-menu">
+          <li>
+            <a href="#" onclick='showTimeline("latest")'>latest</a>
+          </li>
+        </ul>
+      </nav>
+    </div>
+    <div id='video-timeline' class="row video-list" style="margin-top: 25px;">
+    </div>
+
+  </div>
+  <div id="video-container">
+      <div id='current-video'></div>
+      <a href="#" class='video-control' onclick="closeVideo()">Close</a>
+  </div>
+
+<!-- End Document
+  –––––––––––––––––––––––––––––––––––––––––––––––––– -->
 </body>
 </html>
-
-
-
-
-
