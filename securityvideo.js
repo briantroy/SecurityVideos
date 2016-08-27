@@ -103,12 +103,16 @@ function loadCameraVids(cameras, token) {
 function displayLatestVideos(videoItems, targetDiv) {
     targetDiv = "#" + targetDiv;
     $(targetDiv).empty();
-
-
+    var vid_uri;
     videoItems.forEach(function(item) {
+        if(useSmallVideo()) {
+            vid_uri = item.uri_small_video;
+        } else {
+            vid_uri = item.uri;
+        }
         var video_ts = new Date((item.event_ts * 1000));
         var thtml = "<div class='row video-row'><div class='four columns'>" + item.camera_name + " at " + video_ts.toLocaleString() +
-            "   </div><div class='three columns'><button type='button' onclick='playVideo(\"" + item.uri + "\")'>Play Now</button></div></div>";
+            "   </div><div class='three columns'><button type='button' onclick='playVideo(\"" + vid_uri + "\")'>Play Now</button></div></div>";
         $(targetDiv).append(thtml);
     });
 
@@ -141,7 +145,7 @@ function refreshVideos(token) {
 }
 
 function playVideo(uri) {
-    var thtml = "<video src='" + uri + "' controls></video>";
+    var thtml = "<video class='video-embed' src='" + uri + "' preload autoplay controls></video>";
     $("#current-video").empty();
     $("#current-video").append(thtml);
     $("#video-container").show();
@@ -159,4 +163,11 @@ function clickMenu() {
     } else {
         $("#page-nav").show();
     }
+}
+
+function useSmallVideo() {
+    if(window.innerWidth < 1280 || $(".container").css("width") < 960) {
+        return true;
+    }
+    return false;;
 }

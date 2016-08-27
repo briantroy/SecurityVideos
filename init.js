@@ -11,7 +11,6 @@ $( document ).ready(function() {
     $("#log-out").hide();
     $("#video-container").hide();
     $("#page-nav").hide();
-
 });
 
 function onSignIn(googleUser) {
