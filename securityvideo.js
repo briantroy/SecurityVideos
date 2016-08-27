@@ -105,11 +105,8 @@ function displayLatestVideos(videoItems, targetDiv) {
     $(targetDiv).empty();
     var vid_uri;
     videoItems.forEach(function(item) {
-        if(useSmallVideo()) {
-            vid_uri = item.uri_small_video;
-        } else {
-            vid_uri = item.uri;
-        }
+        vid_uri = item.uri;
+        if(useSmallVideo()) vid_uri = item.uri_small_video;
         var video_ts = new Date((item.event_ts * 1000));
         var thtml = "<div class='row video-row'><div class='four columns'>" + item.camera_name + " at " + video_ts.toLocaleString() +
             "   </div><div class='three columns'><button type='button' onclick='playVideo(\"" + vid_uri + "\")'>Play Now</button></div></div>";
@@ -166,7 +163,8 @@ function clickMenu() {
 }
 
 function useSmallVideo() {
-    if(window.innerWidth < 1280 || $(".container").css("width") < 960) {
+    var containerSize = parseInt($(".container").css("width"));
+    if(containerSize < 960) {
         return true;
     }
     return false;;
