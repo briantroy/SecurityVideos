@@ -32,20 +32,22 @@
 }
 #video-container {
     z-index: 10;
-    width: 960px;
-    height: 760px;
+    width: 980px;
+    height: 585px;
     margin: 0 auto;
     background: #f7f7f7;
-    position: absolute;
+    position: fixed;
     left: 50%;
     top: 50%;
-    margin-left: -480px;
-    margin-top: -380px;
+    margin-left: -490px;
+    margin-top: -280px;
     border: 1px solid deepskyblue;
 }
 .video-embed {
-    height: 720px;
+    height: 540px;
     width: 960px;
+    margin-left: 10px;
+    margin-top: 10px;
 }
 a.video-control {
     display: block;
@@ -59,13 +61,13 @@ a.video-control {
 @media (max-width: 960px) {
     .video-embed {
         width: 710px;
-        height: 470px;
+        height: 399px;
         margin-left: 10px;}
     #video-container {
         width: 730px;
-        height: 500px;
+        height: 444px;
         margin-left: -365px;
-        margin-top: -200px;
+        margin-top: -209px;
     }
 }
 
@@ -73,14 +75,14 @@ a.video-control {
 @media (max-width: 740px) {
     .video-embed {
         width: 510px;
-        height: 270px;
+        height: 287px;
         margin-left: 10px;
         margin-top: 10px;}
     #video-container {
         width: 530px;
-        height: 310px;
+        height: 332px;
         margin-left: -265px;
-        margin-top: -150px;
+        margin-top: -153px;
     }
 }
 
@@ -88,12 +90,12 @@ a.video-control {
 @media (max-width: 480px) {
     .video-embed {
         width: 240px;
-        height: 180px;
+        height: 135px;
         margin-left: 10px;}
     #video-container {
         width: 260px;
-        height: 230px;
-        margin-left: -125px;
-        margin-top: -100px;
+        height: 180px;
+        margin-left: -130px;
+        margin-top: -77px;
     }
 }
