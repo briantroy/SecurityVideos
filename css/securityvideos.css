@@ -80,6 +80,9 @@ a.video-control {
     margin: 15px;
     border-bottom: 1px solid deepskyblue;
 }
+.video-info {
+    width: 50%;
+}
 
 /* For devices smaller than 960px */
 @media (max-width: 960px) {
