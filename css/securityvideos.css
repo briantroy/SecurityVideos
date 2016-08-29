@@ -11,8 +11,9 @@
     color: #222222;
 }
 #camera-menu li {
-    margin: 15px;
+    padding: 15px;
     border-bottom: 1px solid deepskyblue;
+    margin-bottom: 0px;
 }
 .video-row {
     border-bottom: 1px solid deepskyblue;

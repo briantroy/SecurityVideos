@@ -71,7 +71,9 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
                     " style='margin-top 25px;'></div>");
                 if(! refresh) {
                     $("#" + camera_name + "-timeline").hide();
-                    var thtml = "<li><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>" + camera_name + "</a></li>";
+                    var thtml = "<li " +
+                        " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
+                        "><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>" + camera_name + "</a></li>";
 
                     $("ul#camera-menu").append(thtml);
                 }
