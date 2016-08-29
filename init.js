@@ -35,6 +35,7 @@ function signOut() {
     auth2.signOut().then(function () {
         $(".video-list").remove();
         $(".navigation").hide();
+        $(".options").hide();
         $(".g-signin2").show();
         $("#usrimg").hide();
         $("#log-out").hide();
