@@ -46,14 +46,15 @@ function getLatestVideos(token) {
                     }
                 });
             } else {
-                displayLatestVideos(result.Items, 'video-timeline');
+                displayLatestVideos(result.Items, 'latest', 'video-timeline');
                 jQuery.data(document.body, 'latest', result.Items);
             }
         }
     });
 }
 
-function getLatestVideosbyCamera(camera_name, token) {
+function getLatestVideosbyCamera(camera_name, token, refresh) {
+    refresh = typeof refresh !== 'undefined' ?  refresh : false;
     $.ajax({
         url: base_api_uri + "/lastfive/" + camera_name,
         crossDomain: true,
@@ -62,16 +63,19 @@ function getLatestVideosbyCamera(camera_name, token) {
         },
 
         success: function( result ) {
-
+            divId = camera_name + "-timeline";
+            $("#" + divId).remove();
             jQuery.data(document.body, camera_name, result.Items);
             if(result.Items.length > 0) {
-                $(".container").append("<div id='" + camera_name + "-timeline' class='row video-list'" +
-                    "style='margin-top 25px;'></div>");
-                $("#" + camera_name + "-timeline").hide();
-                thtml = "<li><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>"  + camera_name + "</a></li>";
+                $(".container").append("<div id='" + divId +  "' class='row video-list'" +
+                    " style='margin-top 25px;'></div>");
+                if(! refresh) {
+                    $("#" + camera_name + "-timeline").hide();
+                    var thtml = "<li><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>" + camera_name + "</a></li>";
 
-                $("ul#camera-menu").append(thtml);
-                displayLatestVideos(result.Items, camera_name + "-timeline");
+                    $("ul#camera-menu").append(thtml);
+                }
+                displayLatestVideos(result.Items, camera_name, camera_name + "-timeline");
             }
         }
     });
@@ -86,7 +90,9 @@ function getCameraList(token) {
         },
 
         success: function( result ) {
-
+            $(".navigation").show();
+            $(".options").show();
+            getLatestVideos(user_token);
             camlist = result;
             loadCameraVids(result, token);
         }
@@ -100,17 +106,17 @@ function loadCameraVids(cameras, token) {
 }
 
 
-function displayLatestVideos(videoItems, targetDiv) {
+function displayLatestVideos(videoItems, camera,  targetDiv) {
     targetDiv = "#" + targetDiv;
     $(targetDiv).empty();
     var vid_uri;
+    var idx = 0;
     videoItems.forEach(function(item) {
-        vid_uri = item.uri;
-        if(useSmallVideo()) vid_uri = item.uri_small_video;
         var video_ts = new Date((item.event_ts * 1000));
         var thtml = "<div class='row video-row'><div class='four columns'>" + item.camera_name + " at " + video_ts.toLocaleString() +
-            "   </div><div class='three columns'><button type='button' onclick='playVideo(\"" + vid_uri + "\")'>Play Now</button></div></div>";
+            "   </div><div class='three columns'><button type='button' onclick='playVideo(\"" + camera + "\", "  + idx + ")'>Play Now</button></div></div>";
         $(targetDiv).append(thtml);
+        idx += 1;
     });
 
 }
@@ -126,22 +132,27 @@ function showTimeline(scope) {
     });
 
     if(scope =='latest') {
+        getLatestVideos(user_token);
         $("#video-timeline").show();
 
     } else {
         // Camera name
-        divname = "#" + scope + "-timeline";
-        $(divname).show();
+        getLatestVideosbyCamera(scope, user_token, true);
+
     }
     clickMenu();
 }
 
-function refreshVideos(token) {
-    $("#current-video").empty();
-    getLatestVideos(token);
-}
+function playVideo(camera, videoIdx) {
+    var uri;
+    var vidList = jQuery.data(document.body, camera);
 
-function playVideo(uri) {
+    if($(".opt-checkbox").is(':checked')) {
+        uri = vidList[videoIdx].uri;
+    } else {
+        uri = vidList[videoIdx].uri_small_video;
+    }
+
     var thtml = "<video class='video-embed' src='" + uri + "' preload autoplay controls></video>";
     $("#current-video").empty();
     $("#current-video").append(thtml);
@@ -154,7 +165,7 @@ function closeVideo() {
 }
 
 function clickMenu() {
-    $(".hamburger").toggleClass("is-active");
+    $("#camera-nav-menu").toggleClass("is-active");
     if ($("#page-nav").is(":visible")) {
         $("#page-nav").hide();
     } else {
@@ -162,10 +173,20 @@ function clickMenu() {
     }
 }
 
-function useSmallVideo() {
+function clickOptions() {
+    $("#options-menu").toggleClass("is-active");
+    if ($("#page-opts").is(":visible")) {
+        $("#page-opts").hide();
+    } else {
+        $("#page-opts").show();
+    }
+}
+
+function setDefaultVideoResoloution() {
     var containerSize = parseInt($(".container").css("width"));
     if(containerSize < 960) {
-        return true;
+        $(".opt-checkbox").prop('checked', false);
+    } else {
+        $(".opt-checkbox").prop('checked', true);
     }
-    return false;;
 }

@@ -57,6 +57,30 @@ a.video-control {
     font-weight: bolder;
 }
 
+#options-container {
+    float: right;
+    text-align: right;
+}
+
+.opt-checkbox {
+    margin-left: 10px;
+    width: 16px;
+    height: 16px;
+}
+
+#page-opts a {
+    font-weight: bold;
+    text-decoration: none;
+    display: block;
+}
+#page-opts a:hover {
+    color: #222222;
+}
+#page-opts div {
+    margin: 15px;
+    border-bottom: 1px solid deepskyblue;
+}
+
 /* For devices smaller than 960px */
 @media (max-width: 960px) {
     .video-embed {

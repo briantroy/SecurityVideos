@@ -42,12 +42,26 @@
   –––––––––––––––––––––––––––––––––––––––––––––––––– -->
   <div class="container">
     <div class="row identity" style="margin-top: 45px;">
+      <div class="u-pull-left">
         <image id='usrimg' src=""></image>
         <div class="g-signin2" data-onsuccess="onSignIn"></div>
         <button id='log-out' type='button' onclick="signOut();">Sign out</button>
+      </div>
+      <div class="u-pull-right">
+        <div id="options-container">
+          <button id='options-menu' class="hamburger hamburger--stand" type="button" onclick="clickOptions()">
+            <span class="hamburger-box">
+              <span class="hamburger-inner"></span>
+            </span>
+          </button>
+          <nav id="page-opts">
+            <div>HD Video<input type="checkbox" class="opt-checkbox" name="full-res-videos" value="full-res-videos" /></div>
+          </nav>
+        </div>
+      </div>
     </div>
     <div class="row navigation" style="margin-top: 25px;">
-      <button class="hamburger hamburger--stand" type="button" onclick="clickMenu()">
+      <button id='camera-nav-menu' class="hamburger hamburger--stand" type="button" onclick="clickMenu()">
         <span class="hamburger-box">
           <span class="hamburger-inner"></span>
         </span>
