@@ -113,7 +113,9 @@ function displayLatestVideos(videoItems, camera,  targetDiv) {
     var idx = 0;
     videoItems.forEach(function(item) {
         var video_ts = new Date((item.event_ts * 1000));
-        var thtml = "<div class='row video-row'><div class='u-pull-left video-info'>" + item.camera_name + " at " + video_ts.toLocaleString() +
+        var thtml = "<div class='row video-row' " +
+            " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
+            item.camera_name + " at " + video_ts.toLocaleString() +
             "   </div><div class='u-pull-right'><button type='button' onclick='playVideo(\"" + camera + "\", "  + idx + ")'>Play Now</button></div></div>";
         $(targetDiv).append(thtml);
         idx += 1;
