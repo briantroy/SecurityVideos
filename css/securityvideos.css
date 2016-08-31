@@ -20,7 +20,11 @@
     padding-top: 10px;
 }
 .identity {
+    padding-bottom: 15px;
     border-bottom: 1px solid deepskyblue;
+}
+.identity-name {
+    padding-top: 15px;
 }
 #usrimg {
     display: block;
@@ -125,5 +129,8 @@ a.video-control {
         height: 180px;
         margin-left: -130px;
         margin-top: -77px;
+    }
+    .identity-name {
+        font-size: small;
     }
 }

@@ -45,7 +45,7 @@
       <div class="u-pull-left">
         <image id='usrimg' src=""></image>
         <div class="g-signin2" data-onsuccess="onSignIn"></div>
-        <button id='log-out' type='button' onclick="signOut();">Sign out</button>
+        <div class="identity-name"></div>
       </div>
       <div class="u-pull-right options">
         <div id="options-container">
@@ -56,6 +56,7 @@
           </button>
           <nav id="page-opts">
             <div>HD Video<input type="checkbox" class="opt-checkbox" name="full-res-videos" value="full-res-videos" /></div>
+            <div><button id='log-out' type='button' onclick="signOut();">Sign out</button></div>
           </nav>
         </div>
       </div>

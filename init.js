@@ -21,6 +21,7 @@ function onSignIn(googleUser) {
     var profile = googleUser.getBasicProfile();
     var auth_resp = googleUser.getAuthResponse();
     document.getElementById('usrimg').src=profile.getImageUrl();
+    $(".identity-name").append(profile.getName() + "<br/>" + profile.getEmail());
     jQuery.data(document.body, 'authData', auth_resp);
     $("#usrimg").show();
     $("#log-out").show();
