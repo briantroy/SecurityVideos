@@ -27,6 +27,7 @@ function onSignIn(googleUser) {
     $("#log-out").show();
     $(".g-signin2").hide();
     user_token = auth_resp.id_token;
+    $(".options").show();
     getCameraList(user_token);
 
 }
@@ -34,12 +35,14 @@ function onSignIn(googleUser) {
 function signOut() {
     var auth2 = gapi.auth2.getAuthInstance();
     auth2.signOut().then(function () {
-        $(".video-list").remove();
+        $(".video-list").empty();
         $(".navigation").hide();
+        clickOptions();
         $(".options").hide();
         $(".g-signin2").show();
         $("#usrimg").hide();
         $("#log-out").hide();
+        $(".identity-name").empty();
     });
 }
 
