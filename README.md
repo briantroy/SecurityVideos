@@ -11,3 +11,5 @@ The Web UI currently allows a Google user to log in/log out and view the timelin
 
 The UI is 100% reponsive and has media queries built in to allow clean playback on all/most mobile devices. The user can also select HD playback or the lower-res mobile version (if enabled).
 
+You can find some screenshots of the UI in the ScreenShots folder: https://github.com/briantroy/SecurityVideos/tree/master/ScreenShots
+
