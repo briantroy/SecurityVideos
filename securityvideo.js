@@ -2,9 +2,10 @@
  * Created by brian.roy on 8/20/16.
  */
 
-var base_api_uri = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com/securityvideos';
+var base_video_api_uri = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com/securityvideos';
+var base_image_api_uri = 'https://oat2z420yk.execute-api.us-east-1.amazonaws.com/securityimages';
 
-function getLatestVideos(token) {
+function getLatest(token, eventType, render_callback) {
     var dateObj = new Date();
     var month = dateObj.getMonth() + 1;
     var day = dateObj.getDate();
@@ -12,9 +13,12 @@ function getLatestVideos(token) {
     if(month < 10) month = "0" + month;
     if(day < 10) day = "0" + day;
     var datestring = year + "-" + month + "-" + day;
+    var base_uri = base_video_api_uri;
+    if(eventType == 'image') base_uri = base_image_api_uri;
+    var data_key = eventType + '-latest';
 
     $.ajax({
-        url: base_api_uri + "/lastfive",
+        url: base_uri + "/lastfive",
         crossDomain: true,
         headers: {
             "Authorization":token
@@ -30,7 +34,7 @@ function getLatestVideos(token) {
                 day = day - 1;
                 datestring = year + "-" + month + "-" + day;
                 $.ajax({
-                    url: base_api_uri + "/lastfive",
+                    url: base_uri + "/lastfive",
                     crossDomain: true,
                     headers: {
                         "Authorization":token
@@ -41,13 +45,13 @@ function getLatestVideos(token) {
 
                     success: function( result ) {
 
-                        displayLatestVideos(result.Items);
-                        jQuery.data(document.body, 'latest', result.Items);
+                        render_callback(result.Items, 'latest', 'video-timeline');
+                        jQuery.data(document.body, data_key, result.Items);
                     }
                 });
             } else {
-                displayLatestVideos(result.Items, 'latest', 'video-timeline');
-                jQuery.data(document.body, 'latest', result.Items);
+                render_callback(result.Items, 'latest', 'video-timeline');
+                jQuery.data(document.body, data_key, result.Items);
             }
         }
     });
@@ -56,28 +60,29 @@ function getLatestVideos(token) {
 function getLatestVideosbyCamera(camera_name, token, refresh) {
     refresh = typeof refresh !== 'undefined' ?  refresh : false;
     $.ajax({
-        url: base_api_uri + "/lastfive/" + camera_name,
+        url: base_video_api_uri + "/lastfive/" + camera_name,
         crossDomain: true,
         headers: {
             "Authorization":token
         },
 
         success: function( result ) {
-            divId = camera_name + "-timeline";
+            var divId = camera_name + "-video-timeline";
+            var data_key = "video-" + camera_name;
             $("#" + divId).remove();
-            jQuery.data(document.body, camera_name, result.Items);
+            jQuery.data(document.body, data_key, result.Items);
             if(result.Items.length > 0) {
                 $(".container").append("<div id='" + divId +  "' class='row video-list'" +
                     " style='margin-top 25px;'></div>");
                 if(! refresh) {
-                    $("#" + camera_name + "-timeline").hide();
+                    $("#" + diviId).hide();
                     var thtml = "<li " +
                         " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
                         "><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>" + camera_name + "</a></li>";
 
                     $("ul#camera-menu").append(thtml);
                 }
-                displayLatestVideos(result.Items, camera_name, camera_name + "-timeline");
+                displayLatestVideos(result.Items, camera_name, divId);
             }
         }
     });
@@ -85,7 +90,7 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
 
 function getCameraList(token) {
     $.ajax({
-        url: base_api_uri + "/cameras",
+        url: base_video_api_uri + "/cameras",
         crossDomain: true,
         headers: {
             "Authorization":token
@@ -94,7 +99,7 @@ function getCameraList(token) {
         success: function( result ) {
             $(".navigation").show();
             $(".options").show();
-            getLatestVideos(user_token);
+            getLatest(user_token, "video", displayLatestVideos());
             camlist = result;
             loadCameraVids(result, token);
         }
@@ -110,6 +115,7 @@ function loadCameraVids(cameras, token) {
 
 function displayLatestVideos(videoItems, camera,  targetDiv) {
     targetDiv = "#" + targetDiv;
+    camera = camera.replace("video-", "");
     $(targetDiv).empty();
     var vid_uri;
     var idx = 0;
@@ -136,7 +142,7 @@ function showTimeline(scope) {
     });
 
     if(scope =='latest') {
-        getLatestVideos(user_token);
+        getLatest(user_token, "video", displayLatestVideos());
         $("#video-timeline").show();
 
     } else {
@@ -149,7 +155,8 @@ function showTimeline(scope) {
 
 function playVideo(camera, videoIdx) {
     var uri;
-    var vidList = jQuery.data(document.body, camera);
+    var data_key = 'video-' + camera;
+    var vidList = jQuery.data(document.body, data_key);
 
     if($(".opt-checkbox").is(':checked')) {
         uri = vidList[videoIdx].uri;
