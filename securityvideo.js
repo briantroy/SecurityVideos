@@ -2,8 +2,9 @@
  * Created by brian.roy on 8/20/16.
  */
 
-var base_video_api_uri = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com/securityvideos';
-var base_image_api_uri = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com/securityvideos/still-images';
+var video_api_host = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com';
+var base_video_api_uri = video_api_host + '/securityvideos';
+var base_image_api_uri = video_api_host + '/securityvideos/still-images';
 
 function getLatest(token, eventType, render_callback) {
     var dateObj = new Date();
@@ -75,7 +76,7 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
                 $(".container").append("<div id='" + divId +  "' class='row video-list'" +
                     " style='margin-top 25px;'></div>");
                 if(! refresh) {
-                    $("#" + diviId).hide();
+                    $("#" + divId).hide();
                     var thtml = "<li " +
                         " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
                         "><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>" + camera_name + "</a></li>";
@@ -99,7 +100,7 @@ function getCameraList(token) {
         success: function( result ) {
             $(".navigation").show();
             $(".options").show();
-            getLatest(user_token, "video", displayLatestVideos());
+            getLatest(user_token, "video", displayLatestVideos);
             camlist = result;
             loadCameraVids(result, token);
         }
@@ -137,12 +138,12 @@ function showTimeline(scope) {
     $("#video-timeline").hide();
     var divname = "";
     camlist.forEach(function(camera) {
-        divname = "#" + camera + "-timeline";
+        divname = "#" + camera + "-video-timeline";
         $(divname).hide();
     });
 
     if(scope =='latest') {
-        getLatest(user_token, "video", displayLatestVideos());
+        getLatest(user_token, "video", displayLatestVideos);
         $("#video-timeline").show();
 
     } else {
