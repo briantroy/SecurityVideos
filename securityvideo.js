@@ -3,7 +3,7 @@
  */
 
 var base_video_api_uri = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com/securityvideos';
-var base_image_api_uri = 'https://oat2z420yk.execute-api.us-east-1.amazonaws.com/securityimages';
+var base_image_api_uri = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com/securityvideos/still-images';
 
 function getLatest(token, eventType, render_callback) {
     var dateObj = new Date();
