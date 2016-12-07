@@ -15,8 +15,17 @@ function getLatest(token, eventType, render_callback) {
     if(day < 10) day = "0" + day;
     var datestring = year + "-" + month + "-" + day;
     var base_uri = base_video_api_uri;
-    if(eventType == 'image') base_uri = base_image_api_uri;
+    var date_param = 'video_date';
+    var target_div = 'video-timeline';
+    if(eventType == 'image') {
+        base_uri = base_image_api_uri;
+        date_param = 'image_date';
+        target_div = 'image-timeline';
+    }
     var data_key = eventType + '-latest';
+
+    var request_params = {};
+    request_params[date_param] = datestring;
 
     $.ajax({
         url: base_uri + "/lastfive",
@@ -24,9 +33,7 @@ function getLatest(token, eventType, render_callback) {
         headers: {
             "Authorization":token
         },
-        data: {
-            "video_date" : datestring
-        },
+        data: request_params,
 
         success: function( result ) {
 
@@ -34,24 +41,23 @@ function getLatest(token, eventType, render_callback) {
                 // Previous Date
                 day = day - 1;
                 datestring = year + "-" + month + "-" + day;
+                request_params[date_param] = datestring;
                 $.ajax({
                     url: base_uri + "/lastfive",
                     crossDomain: true,
                     headers: {
                         "Authorization":token
                     },
-                    data: {
-                        "video_date" : datestring
-                    },
+                    data: request_params,
 
                     success: function( result ) {
 
-                        render_callback(result.Items, 'latest', 'video-timeline');
+                        render_callback(result.Items, 'latest', target_div);
                         jQuery.data(document.body, data_key, result.Items);
                     }
                 });
             } else {
-                render_callback(result.Items, 'latest', 'video-timeline');
+                render_callback(result.Items, 'latest', target_div);
                 jQuery.data(document.body, data_key, result.Items);
             }
         }
@@ -101,6 +107,7 @@ function getCameraList(token) {
             $(".navigation").show();
             $(".options").show();
             getLatest(user_token, "video", displayLatestVideos);
+            getLatest(user_token, "image", displayLatestImages);
             camlist = result;
             loadCameraVids(result, token);
         }
@@ -126,6 +133,24 @@ function displayLatestVideos(videoItems, camera,  targetDiv) {
             " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
             item.camera_name + " at " + video_ts.toLocaleString() +
             "   </div><div class='u-pull-right'><button type='button' onclick='playVideo(\"" + camera + "\", "  + idx + ")'>Play Now</button></div></div>";
+        $(targetDiv).append(thtml);
+        idx += 1;
+    });
+
+}
+
+function displayLatestImages(videoItems, camera,  targetDiv) {
+    targetDiv = "#" + targetDiv;
+    camera = camera.replace("video-", "");
+    $(targetDiv).empty();
+    var vid_uri;
+    var idx = 0;
+    videoItems.forEach(function(item) {
+        var video_ts = new Date((item.event_ts * 1000));
+        var thtml = "<div class='row video-row' " +
+            " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
+            item.camera_name + " at " + video_ts.toLocaleString() +
+            "   </div><div class='u-pull-right'><img width='150px' src='" + item.uri + "' onclick='displayImage(\"" + camera + "\", "  + idx + ")' /></div></div>";
         $(targetDiv).append(thtml);
         idx += 1;
     });
@@ -171,9 +196,26 @@ function playVideo(camera, videoIdx) {
     $("#video-container").show();
 }
 
+function displayImage(camera, imageIdx) {
+    var data_key = 'image-' + camera;
+    var imgList = jQuery.data(document.body, data_key);
+    var uri = imgList[imageIdx].uri;
+
+
+    var thtml = "<img class='image-embed' src='" + uri + "'></img>";
+    $("#current-image").empty();
+    $("#current-image").append(thtml);
+    $("#image-container").show();
+}
+
 function closeVideo() {
     $("#current-video").empty();
     $("#video-container").hide();
+}
+
+function closeImage() {
+    $("#current-image").empty();
+    $("#image-container").hide();
 }
 
 function clickMenu() {

@@ -12,6 +12,8 @@ $( document ).ready(function() {
     $("#usrimg").hide();
     $("#log-out").hide();
     $("#video-container").hide();
+    $("#image-container").hide();
+    // $("#image-timeline").hide();
     $("#page-nav").hide();
     $("#page-opts").hide();
     setDefaultVideoResoloution();
@@ -36,6 +38,7 @@ function signOut() {
     var auth2 = gapi.auth2.getAuthInstance();
     auth2.signOut().then(function () {
         $(".video-list").empty();
+        $(".image-list").empty();
         $(".navigation").hide();
         clickOptions();
         $(".options").hide();
