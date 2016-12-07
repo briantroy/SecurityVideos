@@ -143,13 +143,12 @@ function displayLatestImages(videoItems, camera,  targetDiv) {
     targetDiv = "#" + targetDiv;
     camera = camera.replace("video-", "");
     $(targetDiv).empty();
-    var vid_uri;
     var idx = 0;
     videoItems.forEach(function(item) {
-        var video_ts = new Date((item.event_ts * 1000));
-        var thtml = "<div class='row video-row' " +
+        var img_ts = new Date((item.event_ts * 1000));
+        var thtml = "<div class='row image-row' " +
             " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
-            item.camera_name + " at " + video_ts.toLocaleString() +
+            item.camera_name + " at " + img_ts.toLocaleString() +
             "   </div><div class='u-pull-right'><img width='150px' src='" + item.uri + "' onclick='displayImage(\"" + camera + "\", "  + idx + ")' /></div></div>";
         $(targetDiv).append(thtml);
         idx += 1;
@@ -202,7 +201,7 @@ function displayImage(camera, imageIdx) {
     var uri = imgList[imageIdx].uri;
 
 
-    var thtml = "<img class='image-embed' src='" + uri + "'></img>";
+    var thtml = "<img class='image-embed' src='" + uri + "'/>";
     $("#current-image").empty();
     $("#current-image").append(thtml);
     $("#image-container").show();
