@@ -13,10 +13,18 @@ $( document ).ready(function() {
     $("#log-out").hide();
     $("#video-container").hide();
     $("#image-container").hide();
-    // $("#image-timeline").hide();
+    $("#image-timeline").hide();
     $("#page-nav").hide();
     $("#page-opts").hide();
     setDefaultVideoResoloution();
+
+    $("#show-images-opt").change(function() {
+        if (this.checked) {
+            showTimeline('latest', 'options')
+        } else {
+            showTimeline('latest', 'options');
+        }
+    });
 });
 
 function onSignIn(googleUser) {

@@ -95,6 +95,30 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
     });
 }
 
+function getLatestImagesbyCamera(camera_name, token, refresh) {
+    refresh = typeof refresh !== 'undefined' ?  refresh : false;
+    $.ajax({
+        url: base_image_api_uri + "/lastfive/" + camera_name,
+        crossDomain: true,
+        headers: {
+            "Authorization":token
+        },
+
+        success: function( result ) {
+            var divId = camera_name + "-image-timeline";
+            var data_key = "image-" + camera_name;
+            $("#" + divId).remove();
+            jQuery.data(document.body, data_key, result.Items);
+            if(result.Items.length > 0) {
+                $(".container").append("<div id='" + divId +  "' class='row image-list'" +
+                    " style='margin-top 25px;'></div>");
+
+                displayLatestImages(result.Items, camera_name, divId);
+            }
+        }
+    });
+}
+
 function getCameraList(token) {
     $.ajax({
         url: base_video_api_uri + "/cameras",
@@ -107,7 +131,7 @@ function getCameraList(token) {
             $(".navigation").show();
             $(".options").show();
             getLatest(user_token, "video", displayLatestVideos);
-            getLatest(user_token, "image", displayLatestImages);
+            // getLatest(user_token, "image", displayLatestImages);
             camlist = result;
             loadCameraVids(result, token);
         }
@@ -153,29 +177,53 @@ function displayLatestImages(videoItems, camera,  targetDiv) {
         $(targetDiv).append(thtml);
         idx += 1;
     });
+    $(targetDiv).show();
 
 }
 
-function showTimeline(scope) {
+function showTimeline(scope, invoked_by) {
+    var types = ["image","video"];
     $("#current-video").empty();
-    // Start by hiding all the camera divs
-    $("#video-timeline").hide();
+    $("#current-image").empty();
+    if ($("#show-images-opt").is(':checked')) {
+        type = 'image';
+    } else {
+        type = 'video';
+    }
+    // Start by hiding all the camera & image divs
     var divname = "";
-    camlist.forEach(function(camera) {
-        divname = "#" + camera + "-video-timeline";
-        $(divname).hide();
-    });
+    for (var i = 0; i < types.length; ++i) {
+        temp_type = types[i];
+        $("#" + temp_type + "-timeline").hide();
+        camlist.forEach(function (camera) {
+            divname = "#" + camera + "-" + temp_type + "-timeline";
+            $(divname).hide();
+        });
+    }
 
     if(scope =='latest') {
-        getLatest(user_token, "video", displayLatestVideos);
-        $("#video-timeline").show();
+        if (type == "video") {
+            getLatest(user_token, type, displayLatestVideos);
+            $("#video-timeline").show();
+            $("#image-timeline").hide();
+        }
+        if (type == "image") {
+            getLatest(user_token, type, displayLatestImages);
+            $("#video-timeline").hide();
+            $("#image-timeline").show();
+        }
 
     } else {
-        // Camera name
-        getLatestVideosbyCamera(scope, user_token, true);
+        if (type == 'video') {
+            // Camera name
+            getLatestVideosbyCamera(scope, user_token, true);
+        }
+        if (type == 'image') {
+            getLatestImagesbyCamera(scope, user_token, false);
+        }
 
     }
-    clickMenu();
+    if (invoked_by !== 'options') clickMenu();
 }
 
 function playVideo(camera, videoIdx) {
@@ -183,7 +231,7 @@ function playVideo(camera, videoIdx) {
     var data_key = 'video-' + camera;
     var vidList = jQuery.data(document.body, data_key);
 
-    if($(".opt-checkbox").is(':checked')) {
+    if($("#full-res-videos").is(':checked')) {
         uri = vidList[videoIdx].uri;
     } else {
         uri = vidList[videoIdx].uri_small_video;
@@ -238,8 +286,8 @@ function clickOptions() {
 function setDefaultVideoResoloution() {
     var containerSize = parseInt($(".container").css("width"));
     if(containerSize < 960) {
-        $(".opt-checkbox").prop('checked', false);
+        $("#full-res-videos").prop('checked', false);
     } else {
-        $(".opt-checkbox").prop('checked', true);
+        $("#full-res-videos").prop('checked', true);
     }
 }
