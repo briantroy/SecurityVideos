@@ -25,6 +25,7 @@ $( document ).ready(function() {
             showTimeline('latest', 'options');
         }
     });
+
 });
 
 function onSignIn(googleUser) {

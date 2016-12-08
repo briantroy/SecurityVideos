@@ -113,7 +113,7 @@ function getLatestImagesbyCamera(camera_name, token, refresh) {
                 $(".container").append("<div id='" + divId +  "' class='row image-list'" +
                     " style='margin-top 25px;'></div>");
 
-                displayLatestImages(result.Items, camera_name, divId);
+                displayLatestImagesCarousel(result.Items, camera_name, divId);
             }
         }
     });
@@ -181,6 +181,41 @@ function displayLatestImages(videoItems, camera,  targetDiv) {
 
 }
 
+function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
+    $('#' + targetDiv).remove();
+    $(".container").append("<div id='" + targetDiv +  "' class='row image-list'" +
+        " style='margin-top 25px;'></div>");
+    targetDiv = "#" + targetDiv;
+    var idx = 0;
+    videoItems.forEach(function(item) {
+        var img_ts = new Date((item.event_ts * 1000));
+        var img_text = item.camera_name + " at " + img_ts.toLocaleString();
+        var thtml = "<div class='row image-row' >" +
+            "<img src='" + item.uri + "' text='" + img_text + "' style='width:100%; height:100%;'/></div>";
+        $(targetDiv).append(thtml);
+        idx += 1;
+    });
+    $(targetDiv).show();
+
+    $(targetDiv).slick({
+        dots: true,
+        infinite: false,
+        speed: 500,
+        fade: true,
+        cssEase: 'linear',
+        mobileFirst: true
+    });
+    $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
+        if (currentSlide == 1 && nextSlide == 0) {
+            console.log("Load Previous 10");
+        }
+        if (currentSlide == 8 && nextSlide == 9) {
+            console.log("Load Next 10");
+        }
+    });
+
+}
+
 function showTimeline(scope, invoked_by) {
     var types = ["image","video"];
     $("#current-video").empty();
@@ -208,7 +243,7 @@ function showTimeline(scope, invoked_by) {
             $("#image-timeline").hide();
         }
         if (type == "image") {
-            getLatest(user_token, type, displayLatestImages);
+            getLatest(user_token, type, displayLatestImagesCarousel);
             $("#video-timeline").hide();
             $("#image-timeline").show();
         }
