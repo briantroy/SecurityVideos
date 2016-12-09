@@ -207,10 +207,11 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
     });
     $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
         if (currentSlide == 1 && nextSlide == 0) {
-            console.log("Load Previous 10");
+            loadPrevImages(videoItems[0].camera_name, videoItems[0].event_ts)
         }
         if (currentSlide == 8 && nextSlide == 9) {
-            console.log("Load Next 10");
+            var maxIdx = (videoItems.length - 1)
+            loadNextImages(videoItems[maxIdx].camera_name, videoItems[maxIdx].event_ts)
         }
     });
 
@@ -325,4 +326,39 @@ function setDefaultVideoResoloution() {
     } else {
         $("#full-res-videos").prop('checked', true);
     }
+}
+
+function loadNextImages(camera, lastImageTS) {
+    loadMoreImages(camera, user_token, lastImageTS, "earlier");
+}
+
+function loadPrevImages(camera, firstImageTS) {
+    loadMoreImages(camera, user_token, firstImageTS, "later");
+}
+
+function loadMoreImages(camera_name, token, timestamp, direction) {
+    direction = typeof direction !== 'undefined' ?  direction : "earlier";
+    var request_params = {};
+
+    if (direction == "earlier") {
+        request_params['older_than_ts'] = timestamp;
+    } else {
+        request_params['newer_than_ts'] = timestamp;
+    }
+    request_params['num_results'] = 9;
+
+    $.ajax({
+        url: base_image_api_uri + "/lastfive/" + camera_name,
+        crossDomain: true,
+        headers: {
+            "Authorization":token
+        },
+        data: request_params,
+
+        success: function( result ) {
+            var divId = camera_name + "-image-timeline";
+            var data_key = "image-" + camera_name;
+            console.log(result)
+        }
+    });
 }
