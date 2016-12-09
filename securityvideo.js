@@ -51,12 +51,13 @@ function getLatest(token, eventType, render_callback) {
                     data: request_params,
 
                     success: function( result ) {
-
+                        // if(eventType == 'image') result.Items.reverse();
                         render_callback(result.Items, 'latest', target_div);
                         jQuery.data(document.body, data_key, result.Items);
                     }
                 });
             } else {
+                // if(eventType == 'image') result.Items.reverse();
                 render_callback(result.Items, 'latest', target_div);
                 jQuery.data(document.body, data_key, result.Items);
             }
@@ -205,13 +206,14 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
         cssEase: 'linear',
         mobileFirst: true
     });
+    $(targetDiv).off('beforeChange');
     $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
         if (currentSlide == 1 && nextSlide == 0) {
-            loadPrevImages(videoItems[0].camera_name, videoItems[0].event_ts)
+            loadPrevImages(videoItems[0].camera_name, videoItems[0].event_ts, targetDiv);
         }
         if (currentSlide == 8 && nextSlide == 9) {
-            var maxIdx = (videoItems.length - 1)
-            loadNextImages(videoItems[maxIdx].camera_name, videoItems[maxIdx].event_ts)
+            var maxIdx = (videoItems.length - 1);
+            loadNextImages(videoItems[maxIdx].camera_name, videoItems[maxIdx].event_ts, targetDiv);
         }
     });
 
@@ -328,15 +330,15 @@ function setDefaultVideoResoloution() {
     }
 }
 
-function loadNextImages(camera, lastImageTS) {
-    loadMoreImages(camera, user_token, lastImageTS, "earlier");
+function loadNextImages(camera, lastImageTS, targetDiv) {
+    loadMoreImages(targetDiv, camera, user_token, lastImageTS, "earlier");
 }
 
-function loadPrevImages(camera, firstImageTS) {
-    loadMoreImages(camera, user_token, firstImageTS, "later");
+function loadPrevImages(camera, firstImageTS, targetDiv) {
+    loadMoreImages(targetDiv, camera, user_token, firstImageTS, "later");
 }
 
-function loadMoreImages(camera_name, token, timestamp, direction) {
+function loadMoreImages(targetDiv, camera_name, token, timestamp, direction) {
     direction = typeof direction !== 'undefined' ?  direction : "earlier";
     var request_params = {};
 
@@ -347,8 +349,13 @@ function loadMoreImages(camera_name, token, timestamp, direction) {
     }
     request_params['num_results'] = 9;
 
+    var thisURI = base_image_api_uri + '/lastfive';
+    if(targetDiv !== '#image-timeline') {
+        thisURI += "/" + camera_name;
+    }
+
     $.ajax({
-        url: base_image_api_uri + "/lastfive/" + camera_name,
+        url: thisURI,
         crossDomain: true,
         headers: {
             "Authorization":token
@@ -358,7 +365,103 @@ function loadMoreImages(camera_name, token, timestamp, direction) {
         success: function( result ) {
             var divId = camera_name + "-image-timeline";
             var data_key = "image-" + camera_name;
-            console.log(result)
+            if (direction == 'earlier') displayImagesAtEnd(result.Items, camera_name, targetDiv);
+            if (direction == 'later') displayImagesAtBeginning(result.Items, camera_name, targetDiv);
         }
     });
+}
+
+function displayImagesAtEnd(items, camera, targetDiv) {
+    var idx = 0;
+    var currSlide = $(targetDiv).slick('slickCurrentSlide');
+    var minIdx = 0;
+    var data_key = "image-" + camera;
+    if(targetDiv == '#image-timeline') {
+        data_key = 'image-latest';
+    }
+    var oldItems = jQuery.data(document.body, data_key);
+    var newItems = [oldItems[9]];
+    items.forEach(function(item) {
+        var img_ts = new Date((item.event_ts * 1000));
+        var img_text = item.camera_name + " at " + img_ts.toLocaleString();
+        var thtml = "<div class='row image-row' >" +
+            "<img src='" + item.uri + "' text='" + img_text + "' style='width:100%; height:100%;'/></div>";
+        $(targetDiv).slick('slickAdd', thtml);
+        idx += 1;
+        newItems[idx] = item;
+    });
+    items = newItems;
+    // Remove images to Left.
+    for(var i=(currSlide-1); i >= minIdx; i--){
+        $(targetDiv).slick('slickRemove', i);
+    }
+    $(targetDiv).slick('slickGoTo', 0);
+
+    // Save data for next pass
+    jQuery.data(document.body, data_key, items);
+
+    $(targetDiv).off('beforeChange');
+    $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
+        if (currentSlide == 1 && nextSlide == 0) {
+            loadPrevImages(items[0].camera_name, items[0].event_ts, targetDiv);
+        }
+        if (currentSlide == 8 && nextSlide == 9) {
+            var maxIdx = (items.length - 1);
+            loadNextImages(items[maxIdx].camera_name, items[maxIdx].event_ts, targetDiv);
+        }
+    });
+}
+
+function displayImagesAtBeginning(items, camera, targetDiv) {
+    var idx = 0;
+    var currSlide = $(targetDiv).slick('slickCurrentSlide');
+    var minIdx = 0;
+    var data_key = "image-" + camera;
+    if(targetDiv == '#image-timeline') {
+        data_key = 'image-latest';
+    }
+    if(items.length > 0) {
+        var numNewImages = items.length;
+        items.reverse();
+        items.forEach(function (item) {
+            var img_ts = new Date((item.event_ts * 1000));
+            var img_text = item.camera_name + " at " + img_ts.toLocaleString();
+            var thtml = "<div class='row image-row' >" +
+                "<img src='" + item.uri + "' text='" + img_text + "' style='width:100%; height:100%;'/></div>";
+            $(targetDiv).slick('slickAdd', thtml, 0, 'addBefore');
+            idx += 1;
+        });
+
+        $(targetDiv).slick('slickGoTo', numNewImages);
+
+        // Remove images to Right.
+        for(var i=0; i < numNewImages; i++){
+            $(targetDiv).slick('slickRemove', 9);
+        }
+
+        if(numNewImages < 10) {
+            // Pad with old images so our object has 10 at all times
+            var oldImages = jQuery.data(document.body, data_key);
+            var numToAdd = (10 - numNewImages);
+            for(i=0; i<numToAdd; i++) {
+                items[(numNewImages + i)] = oldImages[i];
+            }
+        }
+
+        // Save data for next pass
+        jQuery.data(document.body, data_key, items);
+
+        $(targetDiv).off('beforeChange');
+        $(targetDiv).on('beforeChange', function (event, slick, currentSlide, nextSlide) {
+            if (currentSlide == 1 && nextSlide == 0) {
+                loadPrevImages(items[0].camera_name, items[0].event_ts, targetDiv);
+            }
+            if (currentSlide == 8 && nextSlide == 9) {
+                var maxIdx = (items.length - 1);
+                loadNextImages(items[maxIdx].camera_name, items[maxIdx].event_ts, targetDiv);
+            }
+        });
+    } else {
+        // console.log('no new images...');
+    }
 }
