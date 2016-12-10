@@ -209,11 +209,13 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
     $(targetDiv).off('beforeChange');
     $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
         if (currentSlide == 1 && nextSlide == 0) {
-            loadPrevImages(videoItems[0].camera_name, videoItems[0].event_ts, targetDiv);
+            loadPrevImages(videoItems[0].camera_name, videoItems[0].capture_date,
+                videoItems[0].event_ts, targetDiv);
         }
         if (currentSlide == 8 && nextSlide == 9) {
             var maxIdx = (videoItems.length - 1);
-            loadNextImages(videoItems[maxIdx].camera_name, videoItems[maxIdx].event_ts, targetDiv);
+            loadNextImages(videoItems[maxIdx].camera_name, videoItems[maxIdx].capture_date,
+                videoItems[maxIdx].event_ts, targetDiv);
         }
     });
 
@@ -330,15 +332,15 @@ function setDefaultVideoResoloution() {
     }
 }
 
-function loadNextImages(camera, lastImageTS, targetDiv) {
-    loadMoreImages(targetDiv, camera, user_token, lastImageTS, "earlier");
+function loadNextImages(camera, captureDate, lastImageTS, targetDiv) {
+    loadMoreImages(targetDiv, camera, captureDate, user_token, lastImageTS, "earlier");
 }
 
-function loadPrevImages(camera, firstImageTS, targetDiv) {
-    loadMoreImages(targetDiv, camera, user_token, firstImageTS, "later");
+function loadPrevImages(camera, captureDate, firstImageTS, targetDiv) {
+    loadMoreImages(targetDiv, camera, captureDate, user_token, firstImageTS, "later");
 }
 
-function loadMoreImages(targetDiv, camera_name, token, timestamp, direction) {
+function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, direction) {
     direction = typeof direction !== 'undefined' ?  direction : "earlier";
     var request_params = {};
 
@@ -348,6 +350,7 @@ function loadMoreImages(targetDiv, camera_name, token, timestamp, direction) {
         request_params['newer_than_ts'] = timestamp;
     }
     request_params['num_results'] = 9;
+    request_params['image_date'] = captureDate;
 
     var thisURI = base_image_api_uri + '/lastfive';
     if(targetDiv !== '#image-timeline') {
@@ -403,11 +406,13 @@ function displayImagesAtEnd(items, camera, targetDiv) {
     $(targetDiv).off('beforeChange');
     $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
         if (currentSlide == 1 && nextSlide == 0) {
-            loadPrevImages(items[0].camera_name, items[0].event_ts, targetDiv);
+            loadPrevImages(items[0].camera_name, items[0].capture_date,
+                items[0].event_ts, targetDiv);
         }
         if (currentSlide == 8 && nextSlide == 9) {
             var maxIdx = (items.length - 1);
-            loadNextImages(items[maxIdx].camera_name, items[maxIdx].event_ts, targetDiv);
+            loadNextImages(items[maxIdx].camera_name, items[maxIdx].capture_date,
+                items[maxIdx].event_ts, targetDiv);
         }
     });
 }
@@ -454,11 +459,13 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
         $(targetDiv).off('beforeChange');
         $(targetDiv).on('beforeChange', function (event, slick, currentSlide, nextSlide) {
             if (currentSlide == 1 && nextSlide == 0) {
-                loadPrevImages(items[0].camera_name, items[0].event_ts, targetDiv);
+                loadPrevImages(items[0].camera_name, items[0].capture_date,
+                    items[0].event_ts, targetDiv);
             }
             if (currentSlide == 8 && nextSlide == 9) {
                 var maxIdx = (items.length - 1);
-                loadNextImages(items[maxIdx].camera_name, items[maxIdx].event_ts, targetDiv);
+                loadNextImages(items[maxIdx].camera_name, itesm[maxIdx].capture_date,
+                    items[maxIdx].event_ts, targetDiv);
             }
         });
     } else {
