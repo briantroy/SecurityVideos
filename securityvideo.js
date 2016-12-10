@@ -350,11 +350,12 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
         request_params['newer_than_ts'] = timestamp;
     }
     request_params['num_results'] = 9;
-    request_params['image_date'] = captureDate;
 
     var thisURI = base_image_api_uri + '/lastfive';
     if(targetDiv !== '#image-timeline') {
         thisURI += "/" + camera_name;
+    } else {
+        request_params['image_date'] = captureDate;
     }
 
     $.ajax({
