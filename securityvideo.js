@@ -91,6 +91,7 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
                     $("ul#camera-menu").append(thtml);
                 }
                 displayLatestVideos(result.Items, camera_name, divId);
+                loadLabelsForImageSet(data_key);
             }
         }
     });
@@ -110,6 +111,7 @@ function getLatestImagesbyCamera(camera_name, token, refresh) {
             var data_key = "image-" + camera_name;
             $("#" + divId).remove();
             jQuery.data(document.body, data_key, result.Items);
+            loadLabelsForImageSet(data_key);
             if(result.Items.length > 0) {
                 $(".container").append("<div id='" + divId +  "' class='row image-list'" +
                     " style='margin-top 25px;'></div>");
@@ -196,6 +198,7 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
         $(targetDiv).append(thtml);
         idx += 1;
     });
+
     $(targetDiv).show();
 
     $(targetDiv).slick({
@@ -208,7 +211,6 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
     });
     $(targetDiv).off('beforeChange');
     $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
-        console.log(jQuery.data(document.body, videoItems[nextSlide].object_key));
         if (currentSlide == 1 && nextSlide == 0) {
             loadPrevImages(videoItems[0].camera_name, videoItems[0].capture_date,
                 videoItems[0].event_ts, targetDiv);
@@ -218,6 +220,9 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
             loadNextImages(videoItems[maxIdx].camera_name, videoItems[maxIdx].capture_date,
                 videoItems[maxIdx].event_ts, targetDiv);
         }
+    });
+    $(targetDiv).on('afterChange', function (event, slick, currentSlide){
+        displayImageLabels(videoItems[currentSlide].object_key, targetDiv);
     });
 
 }
@@ -408,7 +413,6 @@ function displayImagesAtEnd(items, camera, targetDiv) {
 
     $(targetDiv).off('beforeChange');
     $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
-        console.log(jQuery.data(document.body, items[nextSlide].object_key));
         if (currentSlide == 1 && nextSlide == 0) {
             loadPrevImages(items[0].camera_name, items[0].capture_date,
                 items[0].event_ts, targetDiv);
@@ -418,6 +422,9 @@ function displayImagesAtEnd(items, camera, targetDiv) {
             loadNextImages(items[maxIdx].camera_name, items[maxIdx].capture_date,
                 items[maxIdx].event_ts, targetDiv);
         }
+    });
+    $(targetDiv).on('afterChange', function (event, slick, currentSlide){
+        displayImageLabels(items[currentSlide].object_key, targetDiv);
     });
 }
 
@@ -463,7 +470,6 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
 
         $(targetDiv).off('beforeChange');
         $(targetDiv).on('beforeChange', function (event, slick, currentSlide, nextSlide) {
-            console.log(jQuery.data(document.body, items[nextSlide].object_key));
             if (currentSlide == 1 && nextSlide == 0) {
                 loadPrevImages(items[0].camera_name, items[0].capture_date,
                     items[0].event_ts, targetDiv);
@@ -473,6 +479,9 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
                 loadNextImages(items[maxIdx].camera_name, itesm[maxIdx].capture_date,
                     items[maxIdx].event_ts, targetDiv);
             }
+        });
+        $(targetDiv).on('afterChange', function (event, slick, currentSlide){
+            displayImageLabels(items[currentSlide].object_key, targetDiv);
         });
     } else {
         // console.log('no new images...');
@@ -505,4 +514,18 @@ function getCameraImageLabels(image_key) {
             jQuery.data(document.body, image_key, result.Items);
         }
     });
+}
+
+function displayImageLabels(object_key, targetDiv) {
+
+    // Put the labels in
+    $("#image-labels").remove();
+    var thtml = "<div id=image-labels> ";
+    var img_labels = jQuery.data(document.body, object_key);
+    for(var i=0; i<img_labels.length; ++i) {
+        if(i>0) thtml += ", ";
+        thtml += img_labels[i].label
+    }
+    thtml += "</div>";
+    $(targetDiv).append(thtml);
 }
