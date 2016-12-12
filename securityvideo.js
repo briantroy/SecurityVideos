@@ -51,15 +51,15 @@ function getLatest(token, eventType, render_callback) {
                     data: request_params,
 
                     success: function( result ) {
-                        // if(eventType == 'image') result.Items.reverse();
                         render_callback(result.Items, 'latest', target_div);
                         jQuery.data(document.body, data_key, result.Items);
+                        if(eventType == 'image') loadLabelsForImageSet(data_key);
                     }
                 });
             } else {
-                // if(eventType == 'image') result.Items.reverse();
                 render_callback(result.Items, 'latest', target_div);
                 jQuery.data(document.body, data_key, result.Items);
+                if(eventType == 'image') loadLabelsForImageSet(data_key);
             }
         }
     });
@@ -208,6 +208,7 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
     });
     $(targetDiv).off('beforeChange');
     $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
+        console.log(jQuery.data(document.body, videoItems[nextSlide].object_key));
         if (currentSlide == 1 && nextSlide == 0) {
             loadPrevImages(videoItems[0].camera_name, videoItems[0].capture_date,
                 videoItems[0].event_ts, targetDiv);
@@ -403,9 +404,11 @@ function displayImagesAtEnd(items, camera, targetDiv) {
 
     // Save data for next pass
     jQuery.data(document.body, data_key, items);
+    loadLabelsForImageSet(data_key);
 
     $(targetDiv).off('beforeChange');
     $(targetDiv).on('beforeChange', function(event, slick, currentSlide, nextSlide){
+        console.log(jQuery.data(document.body, items[nextSlide].object_key));
         if (currentSlide == 1 && nextSlide == 0) {
             loadPrevImages(items[0].camera_name, items[0].capture_date,
                 items[0].event_ts, targetDiv);
@@ -456,9 +459,11 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
 
         // Save data for next pass
         jQuery.data(document.body, data_key, items);
+        loadLabelsForImageSet(data_key);
 
         $(targetDiv).off('beforeChange');
         $(targetDiv).on('beforeChange', function (event, slick, currentSlide, nextSlide) {
+            console.log(jQuery.data(document.body, items[nextSlide].object_key));
             if (currentSlide == 1 && nextSlide == 0) {
                 loadPrevImages(items[0].camera_name, items[0].capture_date,
                     items[0].event_ts, targetDiv);
@@ -472,4 +477,32 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
     } else {
         // console.log('no new images...');
     }
+}
+
+function loadLabelsForImageSet(data_key) {
+    var imageSet = jQuery.data(document.body, data_key);
+    imageSet.forEach(function(image, idx, imageList){
+        getCameraImageLabels(image.object_key);
+    });
+}
+
+function getCameraImageLabels(image_key) {
+    var request_params = {};
+
+    request_params['image-key'] = image_key;
+
+    var thisURI = base_video_api_uri + '/image/labels';
+
+    $.ajax({
+        url: thisURI,
+        crossDomain: true,
+        headers: {
+            "Authorization":user_token
+        },
+        data: request_params,
+
+        success: function( result ) {
+            jQuery.data(document.body, image_key, result.Items);
+        }
+    });
 }
