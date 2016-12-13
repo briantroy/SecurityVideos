@@ -118,6 +118,9 @@ a.image-control {
 .video-info {
     width: 50%;
 }
+#image-labels {
+    text-align: center;
+}
 
 /* For devices smaller than 960px */
 @media (max-width: 960px) {
