@@ -5,6 +5,7 @@
 var video_api_host = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com';
 var base_video_api_uri = video_api_host + '/securityvideos';
 var base_image_api_uri = video_api_host + '/securityvideos/still-images';
+var loadWait;
 
 function getLatest(token, eventType, render_callback) {
     var dateObj = new Date();
@@ -51,15 +52,19 @@ function getLatest(token, eventType, render_callback) {
                     data: request_params,
 
                     success: function( result ) {
-                        render_callback(result.Items, 'latest', target_div);
                         jQuery.data(document.body, data_key, result.Items);
-                        if(eventType == 'image') loadLabelsForImageSet(data_key);
+                        if(eventType == 'image') {
+                            loadLabelsForImageSet(data_key, "#" + target_div);
+                        }
+                        render_callback(result.Items, 'latest', target_div);
                     }
                 });
             } else {
-                render_callback(result.Items, 'latest', target_div);
                 jQuery.data(document.body, data_key, result.Items);
-                if(eventType == 'image') loadLabelsForImageSet(data_key);
+                if(eventType == 'image') {
+                    loadLabelsForImageSet(data_key, "#" + target_div);
+                }
+                render_callback(result.Items, 'latest', target_div);
             }
         }
     });
@@ -91,7 +96,6 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
                     $("ul#camera-menu").append(thtml);
                 }
                 displayLatestVideos(result.Items, camera_name, divId);
-                loadLabelsForImageSet(data_key);
             }
         }
     });
@@ -111,10 +115,10 @@ function getLatestImagesbyCamera(camera_name, token, refresh) {
             var data_key = "image-" + camera_name;
             $("#" + divId).remove();
             jQuery.data(document.body, data_key, result.Items);
-            loadLabelsForImageSet(data_key);
             if(result.Items.length > 0) {
                 $(".container").append("<div id='" + divId +  "' class='row image-list'" +
                     " style='margin-top 25px;'></div>");
+                loadLabelsForImageSet(data_key, "#" + divId);
 
                 displayLatestImagesCarousel(result.Items, camera_name, divId);
             }
@@ -194,7 +198,7 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
         var img_ts = new Date((item.event_ts * 1000));
         var img_text = item.camera_name + " at " + img_ts.toLocaleString();
         var thtml = "<div class='row image-row' >" +
-            "<img src='" + item.uri + "' text='" + img_text + "' style='width:100%; height:100%;'/></div>";
+            "<img src='" + item.uri + "' title='" + img_text + "' style='width:100%; height:100%;'/></div>";
         $(targetDiv).append(thtml);
         idx += 1;
     });
@@ -363,6 +367,8 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
     } else {
         request_params['image_date'] = captureDate;
     }
+    console.log("more with: ");
+    console.log(request_params);
 
     $.ajax({
         url: thisURI,
@@ -395,7 +401,7 @@ function displayImagesAtEnd(items, camera, targetDiv) {
         var img_ts = new Date((item.event_ts * 1000));
         var img_text = item.camera_name + " at " + img_ts.toLocaleString();
         var thtml = "<div class='row image-row' >" +
-            "<img src='" + item.uri + "' text='" + img_text + "' style='width:100%; height:100%;'/></div>";
+            "<img src='" + item.uri + "' title='" + img_text + "' style='width:100%; height:100%;'/></div>";
         $(targetDiv).slick('slickAdd', thtml);
         idx += 1;
         newItems[idx] = item;
@@ -439,11 +445,13 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
     if(items.length > 0) {
         var numNewImages = items.length;
         items.reverse();
+        console.log("New Items: ");
+        console.log(items);
         items.forEach(function (item) {
             var img_ts = new Date((item.event_ts * 1000));
             var img_text = item.camera_name + " at " + img_ts.toLocaleString();
             var thtml = "<div class='row image-row' >" +
-                "<img src='" + item.uri + "' text='" + img_text + "' style='width:100%; height:100%;'/></div>";
+                "<img src='" + item.uri + "' title='" + img_text + "' style='width:100%; height:100%;'/></div>";
             $(targetDiv).slick('slickAdd', thtml, 0, 'addBefore');
             idx += 1;
         });
@@ -476,7 +484,7 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
             }
             if (currentSlide == 8 && nextSlide == 9) {
                 var maxIdx = (items.length - 1);
-                loadNextImages(items[maxIdx].camera_name, itesm[maxIdx].capture_date,
+                loadNextImages(items[maxIdx].camera_name, items[maxIdx].capture_date,
                     items[maxIdx].event_ts, targetDiv);
             }
         });
@@ -488,11 +496,14 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
     }
 }
 
-function loadLabelsForImageSet(data_key) {
+function loadLabelsForImageSet (data_key, targetDiv) {
     var imageSet = jQuery.data(document.body, data_key);
-    imageSet.forEach(function(image, idx, imageList){
-        getCameraImageLabels(image.object_key);
-    });
+    for(var i=0; i<imageSet.length; ++i) {
+        getCameraImageLabels(imageSet[i].object_key);
+    }
+    if(typeof targetDiv != 'undefined' && (! jQuery.contains(targetDiv, "#image-labels"))) {
+        displayImageLabels(imageSet[0].object_key, (targetDiv));
+    }
 }
 
 function getCameraImageLabels(image_key) {
@@ -519,13 +530,19 @@ function getCameraImageLabels(image_key) {
 function displayImageLabels(object_key, targetDiv) {
 
     // Put the labels in
-    $("#image-labels").remove();
-    var thtml = "<div id=image-labels> ";
     var img_labels = jQuery.data(document.body, object_key);
-    for(var i=0; i<img_labels.length; ++i) {
-        if(i>0) thtml += ", ";
-        thtml += img_labels[i].label
+    if(typeof img_labels !== 'undefined') {
+        $("#image-labels").remove();
+        var thtml = "<div id=image-labels> ";
+        for(var i=0; i<img_labels.length; ++i) {
+            if(i>0) thtml += ", ";
+            thtml += img_labels[i].label
+        }
+        thtml += "</div>";
+        $(targetDiv).append(thtml);
+        clearTimeout(loadWait);
+    } else {
+        loadWait = setTimeout(displayImageLabels, 500, object_key, targetDiv);
     }
-    thtml += "</div>";
-    $(targetDiv).append(thtml);
 }
+
