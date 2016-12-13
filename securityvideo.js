@@ -367,8 +367,8 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
     } else {
         request_params['image_date'] = captureDate;
     }
-    console.log("more with: ");
-    console.log(request_params);
+    // console.log("more with: ");
+    // console.log(request_params);
 
     $.ajax({
         url: thisURI,
@@ -436,8 +436,7 @@ function displayImagesAtEnd(items, camera, targetDiv) {
 
 function displayImagesAtBeginning(items, camera, targetDiv) {
     var idx = 0;
-    var currSlide = $(targetDiv).slick('slickCurrentSlide');
-    var minIdx = 0;
+    var i;
     var data_key = "image-" + camera;
     if(targetDiv == '#image-timeline') {
         data_key = 'image-latest';
@@ -445,8 +444,22 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
     if(items.length > 0) {
         var numNewImages = items.length;
         items.reverse();
-        console.log("New Items: ");
-        console.log(items);
+        if(numNewImages < 10) {
+            // Pad with old images so our object has 10 at all times
+            var oldImages = jQuery.data(document.body, data_key);
+            var numToAdd = (10 - numNewImages);
+            for(i=0; i<numToAdd; i++) {
+                items[(numNewImages + i)] = oldImages[i];
+            }
+        }
+
+        // The items are reversed (largest event_ts in index 0) to enable the padding above.
+        // We need this for rendering as well since we add at the beginning of the slick image slider (not at the
+        // end like in a starting load.
+        // Create a rendering copy and reverse the items for storage and future reference.
+
+        items.reverse();
+
         items.forEach(function (item) {
             var img_ts = new Date((item.event_ts * 1000));
             var img_text = item.camera_name + " at " + img_ts.toLocaleString();
@@ -458,23 +471,14 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
 
         $(targetDiv).slick('slickGoTo', numNewImages);
 
-        // Remove images to Right.
-        for(var i=0; i < numNewImages; i++){
-            $(targetDiv).slick('slickRemove', 9);
-        }
-
-        if(numNewImages < 10) {
-            // Pad with old images so our object has 10 at all times
-            var oldImages = jQuery.data(document.body, data_key);
-            var numToAdd = (10 - numNewImages);
-            for(i=0; i<numToAdd; i++) {
-                items[(numNewImages + i)] = oldImages[i];
-            }
-        }
-
         // Save data for next pass
-        jQuery.data(document.body, data_key, items);
+        jQuery.data(document.body, data_key, items.reverse());
         loadLabelsForImageSet(data_key);
+
+        // Remove images to Right.
+        for(var i=0; i < 10; i++){
+            $(targetDiv).slick('slickRemove', (19 - i));
+        }
 
         $(targetDiv).off('beforeChange');
         $(targetDiv).on('beforeChange', function (event, slick, currentSlide, nextSlide) {
