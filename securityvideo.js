@@ -526,9 +526,26 @@ function getCameraImageLabels(image_key) {
         data: request_params,
 
         success: function( result ) {
-            jQuery.data(document.body, image_key, result.Items);
+            jQuery.data(document.body, image_key, roundAndSortConfidenceValues(result.Items));
         }
     });
+}
+
+function roundAndSortConfidenceValues(items) {
+    var tempConfidence;
+    for(var i=0; i<items.length; ++i) {
+        tempConfidence = items[i].confidence;
+        tempConfidence = parseFloat(tempConfidence).toFixed(2);
+        items[i].confidence = tempConfidence;
+    }
+
+    // Now sort by confidence decending
+    items.sort(function(a, b) {
+        if(parseFloat(a.confidence) > parseFloat(b.confidence)) return -1;
+        if(parseFloat(a.confidence) > parseFloat(b.confidence)) return 1;
+        return 0;
+    });
+    return items;
 }
 
 function displayImageLabels(object_key, targetDiv) {
@@ -540,7 +557,7 @@ function displayImageLabels(object_key, targetDiv) {
         var thtml = "<div id=image-labels> ";
         for(var i=0; i<img_labels.length; ++i) {
             if(i>0) thtml += ", ";
-            thtml += img_labels[i].label
+            thtml += img_labels[i].label + ": " + img_labels[i].confidence;
         }
         thtml += "</div>";
         $(targetDiv).append(thtml);
