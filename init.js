@@ -18,11 +18,24 @@ $( document ).ready(function() {
     $("#page-opts").hide();
     setDefaultVideoResoloution();
 
+    jQuery.data(document.body, 'view_scope', 'latest');
+    jQuery.data(document.body, 'page_request_inflight', 0);
+
+
     $("#show-images-opt").change(function() {
         if (this.checked) {
             showTimeline('latest', 'options')
         } else {
             showTimeline('latest', 'options');
+        }
+    })
+    $(window).scroll(function () {
+        if (($(document).height()) <= $(window).scrollTop() + $(window).height()) {
+            // console.log("End Of The Page for: " + jQuery.data(document.body, 'view_scope'));
+            if (jQuery.data(document.body, 'page_request_inflight') == 0) {
+                jQuery.data(document.body, 'page_request_inflight', 1);
+                loadNextVideos(jQuery.data(document.body, 'view_scope'));
+            }
         }
     });
 

@@ -27,6 +27,7 @@ function getLatest(token, eventType, render_callback) {
 
     var request_params = {};
     request_params[date_param] = datestring;
+    request_params['num_results'] = 20
 
     $.ajax({
         url: base_uri + "/lastfive",
@@ -56,6 +57,7 @@ function getLatest(token, eventType, render_callback) {
                         if(eventType == 'image') {
                             loadLabelsForImageSet(data_key, "#" + target_div);
                         }
+                        jQuery.data(document.body, 'view_scope', 'latest');
                         render_callback(result.Items, 'latest', target_div);
                     }
                 });
@@ -65,6 +67,7 @@ function getLatest(token, eventType, render_callback) {
                     loadLabelsForImageSet(data_key, "#" + target_div);
                 }
                 render_callback(result.Items, 'latest', target_div);
+                jQuery.data(document.body, 'view_scope', 'latest');
             }
         }
     });
@@ -72,12 +75,16 @@ function getLatest(token, eventType, render_callback) {
 
 function getLatestVideosbyCamera(camera_name, token, refresh) {
     refresh = typeof refresh !== 'undefined' ?  refresh : false;
+    var request_params = {};
+    request_params['num_results'] = 20;
+    jQuery.data(document.body, 'view_scope', camera_name);
     $.ajax({
         url: base_video_api_uri + "/lastfive/" + camera_name,
         crossDomain: true,
         headers: {
             "Authorization":token
         },
+        data: request_params,
 
         success: function( result ) {
             var divId = camera_name + "-video-timeline";
@@ -137,10 +144,11 @@ function getCameraList(token) {
         success: function( result ) {
             $(".navigation").show();
             $(".options").show();
-            getLatest(user_token, "video", displayLatestVideos);
-            // getLatest(user_token, "image", displayLatestImages);
             camlist = result;
             loadCameraVids(result, token);
+
+            // Now load latest
+            getLatest(user_token, "video", displayLatestVideos);
         }
     });
 }
@@ -233,6 +241,7 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
 
 function showTimeline(scope, invoked_by) {
     var types = ["image","video"];
+    console.log(scope)
     $("#current-video").empty();
     $("#current-image").empty();
     if ($("#show-images-opt").is(':checked')) {
@@ -306,8 +315,8 @@ function displayImage(camera, imageIdx) {
 }
 
 function closeVideo() {
-    $("#current-video").empty();
     $("#video-container").hide();
+    $("#current-video").empty();
 }
 
 function closeImage() {
@@ -567,17 +576,44 @@ function displayImageLabels(object_key, targetDiv) {
     }
 }
 
-function loadNextVideos(camera, captureDate, lastVideoTS, targetDiv) {
-    loadMoreVideos(targetDiv, camera, captureDate, user_token, lastVideoTS, "earlier");
+function loadNextVideos(camera) {
+    var div_name = "#video-timeline";
+    if(camera !== 'latest') {
+        div_name = "#" + camera + '-video-timeline';
+    }
+    var data_key = 'video-' + camera;
+    var video_data = jQuery.data(document.body, data_key);
+
+    var last_video_item = video_data[video_data.length - 1];
+
+    var lastVideoTS = last_video_item['event_ts'];
+    var captureDate = last_video_item['capture_date'];
+
+    loadMoreVideos(div_name, camera, captureDate, user_token, lastVideoTS, "earlier");
 }
 
-function loadPrevVideos(camera, captureDate, firstVideoTS, targetDiv) {
+function loadPrevVideos(camera) {
+    var div_name = "#video-timeline";
+    if(camera !== 'latest') {
+        div_name = "#" + camera + '-video-timeline';
+    }
+
+    var data_key = 'video-' + camera;
+    var video_data = jQuery.data(document.body, data_key);
+
+    var first_video_item = video_data[0];
+
+    var firstVideoTS = first_video_item['event_ts'];
+    var captureDate = first_video_item['capture_date'];
+
     loadMoreVideos(targetDiv, camera, captureDate, user_token, firstVideoTS, "later");
 }
 
 function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, direction) {
     direction = typeof direction !== 'undefined' ?  direction : "earlier";
     var request_params = {};
+    var data_key = 'video-' + camera_name;
+    var vidList = jQuery.data(document.body, data_key);
 
     if (direction == "earlier") {
         request_params['older_than_ts'] = timestamp;
@@ -586,7 +622,7 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
     }
     request_params['num_results'] = 10;
 
-    var thisURI = base_image_api_uri + '/last5Videos';
+    var thisURI = base_video_api_uri + '/lastfive';
     if(targetDiv !== '#video-timeline') {
         thisURI += "/" + camera_name;
     } else {
@@ -605,19 +641,28 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
 
         success: function( result ) {
             var divId = camera_name + "-video-timeline";
-            var data_key = "image-" + camera_name;
-            //TODO create the functions to append the videos returned
-            if (direction == 'earlier') displayVideosAtEnd(result.Items, camera_name, targetDiv);
-            if (direction == 'later') displayVideosAtBeginning(result.Items, camera_name, targetDiv);
+            var data_key = "video-" + camera_name;
+            if (direction == 'earlier') {
+                displayVideosAtEnd(result.Items, camera_name, targetDiv, vidList.length);
+                for(var i = 0; i < result.Items.length; ++i) vidList.push(result.Items[i]);
+                // console.log(vidList);
+                jQuery.data(document.body, data_key, vidList);
+            }
+            if (direction == 'later') {
+                for (var i = 0; i < vidList.length; ++i) result.Items.push(vidList[i]);
+                // console.log(result.Items);
+                jQuery.data(document.body, data_key, result.Items);
+                displayVideosAtBeginning(result.Items, camera_name, targetDiv, 0);
+            }
         }
     });
 }
 
-function displayVideosAtEnd(videoItems, camera,  targetDiv) {
-    targetDiv = "#" + targetDiv;
+function displayVideosAtEnd(videoItems, camera,  targetDiv, start_index) {
+    targetDiv = targetDiv;
     camera = camera.replace("video-", "");
     var vid_uri;
-    var idx = 0;
+    var idx = start_index;
     videoItems.forEach(function(item) {
         var video_ts = new Date((item.event_ts * 1000));
         var thtml = "<div class='row video-row' " +
@@ -627,14 +672,16 @@ function displayVideosAtEnd(videoItems, camera,  targetDiv) {
         $(targetDiv).append(thtml);
         idx += 1;
     });
+    jQuery.data(document.body, 'page_request_inflight', 0);
 
 }
 
-function displayVideosAtBeginning(videoItems, camera,  targetDiv) {
-    targetDiv = "#" + targetDiv;
+function displayVideosAtBeginning(videoItems, camera,  targetDiv, start_index) {
+    targetDiv = targetDiv;
     camera = camera.replace("video-", "");
     var vid_uri;
-    var idx = 0;
+    var idx = start_index;
+    $(targetDiv).empty();
     videoItems.forEach(function(item) {
         var video_ts = new Date((item.event_ts * 1000));
         var thtml = "<div class='row video-row' " +
@@ -644,5 +691,6 @@ function displayVideosAtBeginning(videoItems, camera,  targetDiv) {
         $(targetDiv).prepend(thtml);
         idx += 1;
     });
+    jQuery.data(document.body, 'page_request_inflight', 0);
 
 }
