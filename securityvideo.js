@@ -567,3 +567,82 @@ function displayImageLabels(object_key, targetDiv) {
     }
 }
 
+function loadNextVideos(camera, captureDate, lastVideoTS, targetDiv) {
+    loadMoreVideos(targetDiv, camera, captureDate, user_token, lastVideoTS, "earlier");
+}
+
+function loadPrevVideos(camera, captureDate, firstVideoTS, targetDiv) {
+    loadMoreVideos(targetDiv, camera, captureDate, user_token, firstVideoTS, "later");
+}
+
+function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, direction) {
+    direction = typeof direction !== 'undefined' ?  direction : "earlier";
+    var request_params = {};
+
+    if (direction == "earlier") {
+        request_params['older_than_ts'] = timestamp;
+    } else {
+        request_params['newer_than_ts'] = timestamp;
+    }
+    request_params['num_results'] = 10;
+
+    var thisURI = base_image_api_uri + '/last5Videos';
+    if(targetDiv !== '#video-timeline') {
+        thisURI += "/" + camera_name;
+    } else {
+        request_params['video_date'] = captureDate;
+    }
+    // console.log("more with: ");
+    // console.log(request_params);
+
+    $.ajax({
+        url: thisURI,
+        crossDomain: true,
+        headers: {
+            "Authorization":token
+        },
+        data: request_params,
+
+        success: function( result ) {
+            var divId = camera_name + "-video-timeline";
+            var data_key = "image-" + camera_name;
+            //TODO create the functions to append the videos returned
+            if (direction == 'earlier') displayVideosAtEnd(result.Items, camera_name, targetDiv);
+            if (direction == 'later') displayVideosAtBeginning(result.Items, camera_name, targetDiv);
+        }
+    });
+}
+
+function displayVideosAtEnd(videoItems, camera,  targetDiv) {
+    targetDiv = "#" + targetDiv;
+    camera = camera.replace("video-", "");
+    var vid_uri;
+    var idx = 0;
+    videoItems.forEach(function(item) {
+        var video_ts = new Date((item.event_ts * 1000));
+        var thtml = "<div class='row video-row' " +
+            " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
+            item.camera_name + " at " + video_ts.toLocaleString() +
+            "   </div><div class='u-pull-right'><button type='button' onclick='playVideo(\"" + camera + "\", "  + idx + ")'>Play Now</button></div></div>";
+        $(targetDiv).append(thtml);
+        idx += 1;
+    });
+
+}
+
+function displayVideosAtBeginning(videoItems, camera,  targetDiv) {
+    targetDiv = "#" + targetDiv;
+    camera = camera.replace("video-", "");
+    var vid_uri;
+    var idx = 0;
+    videoItems.forEach(function(item) {
+        var video_ts = new Date((item.event_ts * 1000));
+        var thtml = "<div class='row video-row' " +
+            " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
+            item.camera_name + " at " + video_ts.toLocaleString() +
+            "   </div><div class='u-pull-right'><button type='button' onclick='playVideo(\"" + camera + "\", "  + idx + ")'>Play Now</button></div></div>";
+        $(targetDiv).prepend(thtml);
+        idx += 1;
+    });
+
+}
