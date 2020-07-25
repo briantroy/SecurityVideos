@@ -299,7 +299,7 @@ function playVideo(camera, videoIdx) {
     var thtml = "<video class='video-embed' src='" + uri + "' preload autoplay controls></video>";
     $("#current-video").empty();
     $("#current-video").append(thtml);
-    $("#video-container").show();
+    $("#video-container").css('visibility', 'visible');
 }
 
 function displayImage(camera, imageIdx) {
@@ -315,8 +315,7 @@ function displayImage(camera, imageIdx) {
 }
 
 function closeVideo() {
-    $("#video-container").hide();
-    $("#current-video").empty();
+    $("#video-container").css('visibility', 'hidden');
 }
 
 function closeImage() {

@@ -77,12 +77,13 @@
     margin-left: 10px;
     margin-top: 10px;
 }
-a.video-control {
+.video-control {
      display: block;
      text-align: center;
      vertical-align: top;
      color: black;
      font-weight: bolder;
+     cursor: pointer;
 }
 a.image-control {
     display: block;

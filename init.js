@@ -11,7 +11,7 @@ $( document ).ready(function() {
     $(".options").hide();
     $("#usrimg").hide();
     $("#log-out").hide();
-    $("#video-container").hide();
+    $("#video-container").css('visibility', 'hidden');
     $("#image-container").hide();
     $("#image-timeline").hide();
     $("#page-nav").hide();
@@ -28,7 +28,10 @@ $( document ).ready(function() {
         } else {
             showTimeline('latest', 'options');
         }
-    })
+    });
+    $("#close-video").click(function() {
+        closeVideo();
+    });
     $(window).scroll(function () {
         if (($(document).height()) <= $(window).scrollTop() + $(window).height()) {
             // console.log("End Of The Page for: " + jQuery.data(document.body, 'view_scope'));
