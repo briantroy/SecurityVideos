@@ -586,9 +586,19 @@ function loadNextVideos(camera) {
     var last_video_item = video_data[video_data.length - 1];
 
     var lastVideoTS = last_video_item['event_ts'];
-    var captureDate = last_video_item['capture_date'];
+    var captureDate = dateFromTS(lastVideoTS);
 
     loadMoreVideos(div_name, camera, captureDate, user_token, lastVideoTS, "earlier");
+}
+
+function dateFromTS(ts) {
+    var video_ts = new Date((ts * 1000));
+    var month = video_ts.getMonth() + 1;
+    var day = video_ts.getDate();
+    var year = video_ts.getFullYear();
+    if(month < 10) month = "0" + month;
+    if(day < 10) day = "0" + day;
+    return year + "-" + month + "-" + day;
 }
 
 function loadPrevVideos(camera) {
@@ -603,7 +613,7 @@ function loadPrevVideos(camera) {
     var first_video_item = video_data[0];
 
     var firstVideoTS = first_video_item['event_ts'];
-    var captureDate = first_video_item['capture_date'];
+    var captureDate = dateFromTS(firstVideoTS);
 
     loadMoreVideos(targetDiv, camera, captureDate, user_token, firstVideoTS, "later");
 }
