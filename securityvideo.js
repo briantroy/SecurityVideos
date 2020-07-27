@@ -588,17 +588,27 @@ function loadNextVideos(camera) {
     var lastVideoTS = last_video_item['event_ts'];
     var captureDate = dateFromTS(lastVideoTS);
 
-    loadMoreVideos(div_name, camera, captureDate, user_token, lastVideoTS, "earlier");
+    loadMoreVideos(div_name, camera, captureDate['date'], user_token, lastVideoTS, "earlier");
 }
 
 function dateFromTS(ts) {
     var video_ts = new Date((ts * 1000));
-    var month = video_ts.getMonth() + 1;
-    var day = video_ts.getDate();
-    var year = video_ts.getFullYear();
-    if(month < 10) month = "0" + month;
-    if(day < 10) day = "0" + day;
-    return year + "-" + month + "-" + day;
+    var output['month_raw'] = video_ts.getMonth() + 1;
+    output['day_raw'] = video_ts.getDate();
+    output ['year'] = video_ts.getFullYear();
+
+    if(output['month_raw'] < 10) {
+        output['month'] = "0" + output['month_raw']
+    } else {
+        output['month'] = output['month_raw'];
+    }
+    if(output['day_raw'] < 10) {
+        output['day'] = "0" + output['day_raw'];
+    } else {
+        output['day'] = output['day_raw'];
+    }
+    output['date'] = year + "-" + month + "-" + day;
+    return output;
 }
 
 function loadPrevVideos(camera) {
@@ -615,7 +625,7 @@ function loadPrevVideos(camera) {
     var firstVideoTS = first_video_item['event_ts'];
     var captureDate = dateFromTS(firstVideoTS);
 
-    loadMoreVideos(targetDiv, camera, captureDate, user_token, firstVideoTS, "later");
+    loadMoreVideos(targetDiv, camera, captureDate['date'], user_token, firstVideoTS, "later");
 }
 
 function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, direction) {
