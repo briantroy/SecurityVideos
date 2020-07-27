@@ -35,7 +35,7 @@ $( document ).ready(function() {
     $(window).scroll(function () {
         if (($(document).height()) <= $(window).scrollTop() + $(window).height()) {
             // console.log("End Of The Page for: " + jQuery.data(document.body, 'view_scope'));
-            if (jQuery.data(document.body, 'page_request_inflight') == 0) {
+            if (jQuery.data(document.body, 'page_request_inflight') === 0) {
                 jQuery.data(document.body, 'page_request_inflight', 1);
                 loadNextVideos(jQuery.data(document.body, 'view_scope'));
             }
@@ -45,8 +45,8 @@ $( document ).ready(function() {
 });
 
 function onSignIn(googleUser) {
-    var profile = googleUser.getBasicProfile();
-    var auth_resp = googleUser.getAuthResponse();
+    let profile = googleUser.getBasicProfile();
+    let auth_resp = googleUser.getAuthResponse();
     document.getElementById('usrimg').src=profile.getImageUrl();
     $(".identity-name").append(profile.getName() + "<br/>" + profile.getEmail());
     jQuery.data(document.body, 'authData', auth_resp);
@@ -60,7 +60,7 @@ function onSignIn(googleUser) {
 }
 
 function signOut() {
-    var auth2 = gapi.auth2.getAuthInstance();
+    let auth2 = gapi.auth2.getAuthInstance();
     auth2.signOut().then(function () {
         $(".video-list").empty();
         $(".image-list").empty();
