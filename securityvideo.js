@@ -169,7 +169,10 @@ function displayLatestVideos(videoItems, camera,  targetDiv) {
     $(targetDiv).empty();
     let idx = 0;
     videoItems.forEach(function(item) {
-        let video_ts = new Date((item['event_ts'] * 1000));
+        let video_ts = new Date((item['event_ts']));
+        if(video_ts.getFullYear() < 2000) {
+            video_ts = new Date((item['event_ts'] * 1000));
+        }
         let thtml = "<div class='row video-row' " +
             " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
             item['camera_name'] + " at " + video_ts.toLocaleString() +
@@ -186,7 +189,10 @@ function displayLatestImages(videoItems, camera,  targetDiv) {
     $(targetDiv).empty();
     let idx = 0;
     videoItems.forEach(function(item) {
-        let img_ts = new Date((item['event_ts'] * 1000));
+        let img_ts = new Date((item['event_ts']));
+        if(img_ts.getFullYear() < 2000) {
+            img_ts = new Date((item['event_ts'] * 1000));
+        }
         let thtml = "<div class='row image-row' " +
             " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
             item['camera_name'] + " at " + img_ts.toLocaleString() +
@@ -205,7 +211,10 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
     targetDiv = "#" + targetDiv;
     let idx = 0;
     videoItems.forEach(function(item) {
-        let img_ts = new Date((item['event_ts'] * 1000));
+        let img_ts = new Date((item['event_ts']));
+        if(img_ts.getFullYear() < 2000) {
+            img_ts = new Date((item['event_ts'] * 1000));
+        }
         let img_text = item['camera_name'] + " at " + img_ts.toLocaleString();
         let thtml = "<div class='row image-row' >" +
             "<img src='" + item.uri + "' title='" + img_text + "' style='width:100%; height:100%;'/></div>";
@@ -320,6 +329,7 @@ function displayImage(camera, imageIdx) {
 
 function closeVideo() {
     $("#video-container").css('visibility', 'hidden');
+    $("#current-video").empty();
 }
 
 function closeImage() {
@@ -408,7 +418,10 @@ function displayImagesAtEnd(items, camera, targetDiv) {
     let oldItems = jQuery.data(document.body, data_key);
     let newItems = [oldItems[9]];
     items.forEach(function(item) {
-        let img_ts = new Date((item['event_ts'] * 1000));
+        let img_ts = new Date((item['event_ts']));
+        if(img_ts.getFullYear() < 2000) {
+            img_ts = new Date((item['event_ts'] * 1000));
+        }
         let img_text = item['camera_name'] + " at " + img_ts.toLocaleString();
         let thtml = "<div class='row image-row' >" +
             "<img src='" + item.uri + "' title='" + img_text + "' style='width:100%; height:100%;'/></div>";
@@ -471,7 +484,10 @@ function displayImagesAtBeginning(items, camera, targetDiv) {
         items.reverse();
 
         items.forEach(function (item) {
-            let img_ts = new Date((item['event_ts'] * 1000));
+            let img_ts = new Date((item['event_ts']));
+            if(img_ts.getFullYear() < 2000) {
+                img_ts = new Date((item['event_ts'] * 1000));
+            }
             let img_text = item['camera_name'] + " at " + img_ts.toLocaleString();
             let thtml = "<div class='row image-row' >" +
                 "<img src='" + item.uri + "' title='" + img_text + "' style='width:100%; height:100%;'/></div>";
@@ -598,7 +614,10 @@ function loadNextVideos(camera) {
 }
 
 function dateFromTS(ts) {
-    let video_ts = new Date((ts * 1000));
+    let video_ts = new Date(ts);
+    if(video_ts.getFullYear() < 2000) {
+        video_ts = new Date(ts * 1000);
+    }
     let output = {month_raw: video_ts.getMonth() + 1};
     output['day_raw'] = video_ts.getDate();
     output ['year'] = video_ts.getFullYear();
@@ -687,7 +706,10 @@ function displayVideosAtEnd(videoItems, camera,  targetDiv, start_index) {
     camera = camera.replace("video-", "");
     let idx = start_index;
     videoItems.forEach(function(item) {
-        let video_ts = new Date((item['event_ts'] * 1000));
+        let video_ts = new Date((item['event_ts']));
+        if(video_ts.getFullYear() < 2000) {
+            video_ts = new Date((item['event_ts'] * 1000));
+        }
         let thtml = "<div class='row video-row' " +
             " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
             item['camera_name'] + " at " + video_ts.toLocaleString() +
@@ -704,7 +726,10 @@ function displayVideosAtBeginning(videoItems, camera,  targetDiv, start_index) {
     let idx = start_index;
     $(targetDiv).empty();
     videoItems.forEach(function(item) {
-        let video_ts = new Date((item['event_ts'] * 1000));
+        let video_ts = new Date((item['event_ts']));
+        if(video_ts.getFullYear() < 2000) {
+            video_ts = new Date((item['event_ts'] * 1000));
+        }
         let thtml = "<div class='row video-row' " +
             " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"><div class='u-pull-left video-info'>" +
             item['camera_name'] + " at " + video_ts.toLocaleString() +
