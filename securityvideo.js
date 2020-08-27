@@ -604,11 +604,11 @@ function loadNextVideos(camera) {
     let last_video_item = video_data[video_data.length - 1];
 
     let lastVideoTS = last_video_item['event_ts'];
+    let captureDate = dateFromTS(lastVideoTS);
     if (jQuery.data(document.body, 'videos_in_last_request') === 0) {
         // Got nothing last time... need to go back one day in time.
-        lastVideoTS = lastVideoTS - (60*60*24*1000);
+        captureDate = dateFromTS(lastVideoTS - (60 * 60 * 24 * 1000));
     }
-    let captureDate = dateFromTS(lastVideoTS);
 
     loadMoreVideos(div_name, camera, captureDate['date'], user_token, lastVideoTS, "earlier");
 }
