@@ -2,7 +2,7 @@
  * Created by brian.roy on 8/20/16.
  */
 
-const video_api_host = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com/securityvideos';
+const video_api_host = 'https://7k8o0sgjli.execute-api.us-east-1.amazonaws.com';
 const base_video_api_uri = video_api_host + '/securityvideos';
 const base_image_api_uri = video_api_host + '/securityvideos/still-images';
 var loadWait;
