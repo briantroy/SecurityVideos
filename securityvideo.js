@@ -4,7 +4,7 @@
 
 const video_api_host = 'https://api.security-videos.brianandkelly.ws';
 const base_video_api_uri = video_api_host + '';
-const base_image_api_uri = video_api_host + '/securityvideos/still-images';
+const base_image_api_uri = video_api_host + '/still-images';
 var loadWait;
 
 function getLatest(token, eventType, render_callback) {
