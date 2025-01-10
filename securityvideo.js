@@ -148,7 +148,17 @@ function getCameraList(token) {
             $(".navigation").show();
             $(".options").show();
             camlist = result;
-            loadCameraVids(result, token);
+            // loadCameraVids(result, token);
+            console.log("New version")
+            console.log(result);
+            
+            result.forEach(function(camera_name, idx) {
+                thtml = "<li " +
+                        " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
+                        "><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>" + camera_name + "</a></li>";
+
+                $("ul#camera-menu").append(thtml);
+            })
 
             // Now load latest
             getLatest(user_token, "video", displayLatestVideos);
