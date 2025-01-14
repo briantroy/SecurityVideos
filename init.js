@@ -34,7 +34,7 @@ $( document ).ready(function() {
     });
     $(window).scroll(function () {
         if (($(document).height()) <= $(window).scrollTop() + $(window).height()) {
-            // console.log("End Of The Page for: " + jQuery.data(document.body, 'view_scope'));
+            console.log("End Of The Page for: " + jQuery.data(document.body, 'view_scope'));
             if (jQuery.data(document.body, 'page_request_inflight') === 0) {
                 jQuery.data(document.body, 'page_request_inflight', 1);
                 loadNextVideos(jQuery.data(document.body, 'view_scope'));
