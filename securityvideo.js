@@ -340,7 +340,7 @@ function showTimeline(scope, invoked_by) {
             $("#image-timeline").show();
         }
 
-    } else if(scope.startswith('filter:')){
+    } else if(scope.startsWith('filter:')){
        filter_name = scope.replace('filter:', '');
         if (type === 'video') {
             getLatestVideosbyFilter(filter_name, user_token, true);
