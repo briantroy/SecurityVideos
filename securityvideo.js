@@ -359,12 +359,9 @@ function showTimeline(scope, invoked_by) {
         }
     
     } else {
-        $("#video-timeline").show();
-        $("#image-timeline").hide();
-        $("#filtered-set-image-timeline").hide();
         if (type === 'video') {
             // Camera name
-            $("#video-timeline").show();
+            $("#video-timeline").hide();
             $("#image-timeline").hide();
             $("#filtered-set-image-timeline").hide();
             getLatestVideosbyCamera(scope, user_token, true);
