@@ -157,7 +157,7 @@ function getCameraList(token) {
             Object.keys(filterlist).forEach(function(filter) {
                 thtml = "<li " +
                     " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
-                    "><a href='#' onclick='showTimeline(\"Filter: " + filter + "\")'>" + filter + "</a></li>";
+                    "><a href='#' onclick='showTimeline(\"" + filter + "\")'>Filter: " + filter + "</a></li>";
 
                 $("ul#filter-menu").append(thtml);
             })
@@ -165,7 +165,7 @@ function getCameraList(token) {
             camlist.forEach(function(camera_name, idx) {
                 thtml = "<li " +
                         " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
-                        "><a href='#' onclick='showTimeline(\"Camera: " + camera_name + "\")'>" + camera_name + "</a></li>";
+                        "><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>Camera: " + camera_name + "</a></li>";
 
                 $("ul#camera-menu").append(thtml);
             })
