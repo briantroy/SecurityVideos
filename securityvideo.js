@@ -673,6 +673,7 @@ function loadNextVideos(camera) {
     console.log(camera);
     let data_key = 'video-' + camera;
     let video_data = jQuery.data(document.body, data_key);
+    console.log(video_data);
     let is_filter = jQuery.data(document.body, 'is_filter');
     if(is_filter) {
         div_name = '#filtered-set-video-timeline';
