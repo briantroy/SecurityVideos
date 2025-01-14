@@ -1,16 +1,16 @@
 #page-nav {
     margin-left: 20px;
 }
-#camera-menu, #filter-menu { list-style: none; }
+#camera-menu, #filter-menu, #filtering { list-style: none; }
 #camera-menu a, #filter-menu a {
     font-weight: bold;
     text-decoration: none;
     display: block;
 }
-#camera-menu a:hover, #filter-menu a:hover {
+#camera-menu a:hover, #filter-menu a:hover, #filtering a:hover {
     color: #222222;
 }
-#camera-menu li, #filter-menu li {
+#camera-menu li, #filter-menu li, #filtering li {
     padding: 15px;
     border-bottom: 1px solid deepskyblue;
     margin-bottom: 0px;
