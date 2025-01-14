@@ -449,12 +449,16 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
 
     let thisURI = base_image_api_uri + '/lastfive';
     if(targetDiv !== '#image-timeline') {
-        thisURI += "/" + camera_name;
+        if(targetDiv.startsWith('#filtered-set'))  {
+            request_params['filter'] = camera_name;
+        } else {
+            thisURI += "/" + camera_name;
+        }
     } else {
         request_params['image_date'] = captureDate;
     }
-    // console.log("more with: ");
-    // console.log(request_params);
+    console.log("more with: ");
+    console.log(request_params);
 
     $.ajax({
         url: thisURI,
