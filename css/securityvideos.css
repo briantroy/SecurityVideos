@@ -2,7 +2,7 @@
     margin-left: 20px;
 }
 #camera-menu, #filter-menu { list-style: none; }
-#camera-menu a, filter-menu a {
+#camera-menu a, #filter-menu a {
     font-weight: bold;
     text-decoration: none;
     display: block;
