@@ -90,7 +90,7 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
         data: request_params,
 
         success: function( result ) {
-            let divId = camera_name + "-video-timeline";
+            let divId = "camera-video-timeline";
             let data_key = "video-" + camera_name;
             $("#" + divId).remove();
             jQuery.data(document.body, data_key, result.Items);
