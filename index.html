@@ -82,15 +82,22 @@
         </span>
       </button>
       <nav id="page-nav">
-        <ul id="filter-menu">
+        <ul id="filtering">
           <li onmouseover=this.style.background='aliceblue'; onmouseout=this.style.background='white';>
-            <a href="#" onclick='showTimeline("all")'>Clear Filter</a>
+            'Filters:'
+              <ul id="filter-menu">
+                <li onmouseover=this.style.background='aliceblue'; onmouseout=this.style.background='white';>
+                  <a href="#" onclick='showTimeline("all")'>Clear Filter</a>
+                </li>
+              </ul>
           </li>
-        </ul>
-        <ul id="camera-menu">
           <li onmouseover=this.style.background='aliceblue'; onmouseout=this.style.background='white';>
-            <a href="#" onclick='showTimeline("latest")'>latest</a>
-          </li>
+            'Cameras:'
+                <ul id="camera-menu">
+                  <li onmouseover=this.style.background='aliceblue'; onmouseout=this.style.background='white';>
+                    <a href="#" onclick='showTimeline("latest")'>latest</a>
+                  </li>
+                </ul>
         </ul>
       </nav>
     </div>
