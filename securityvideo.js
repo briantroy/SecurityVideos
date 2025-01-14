@@ -446,7 +446,7 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
         request_params['newer_than_ts'] = timestamp;
     }
     request_params['num_results'] = 9;
-
+    console.log(targetDiv);
     let thisURI = base_image_api_uri + '/lastfive';
     if(targetDiv !== '#image-timeline') {
         if(targetDiv.startsWith('#filtered-set'))  {
