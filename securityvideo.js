@@ -154,7 +154,7 @@ function getCameraList(token) {
             console.log("New version")
             console.log(result);
 
-            filterlist.forEach(function(filter, idx) {
+            Object.keys(filterlist).forEach(function(filter) {
                 thtml = "<li " +
                     " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
                     "><a href='#' onclick='showTimeline(\"Filter: " + filter + "\")'>" + filter + "</a></li>";
