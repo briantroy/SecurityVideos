@@ -108,6 +108,41 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
     });
 }
 
+function getLatestVideosbyFilter(filter_name, token, refresh) {
+    refresh = typeof refresh !== 'undefined' ?  refresh : false;
+    let request_params = {};
+    request_params['filter'] = filter_name;
+    jQuery.data(document.body, 'view_scope', filter_name);
+    $.ajax({
+        url: base_video_api_uri + "/lastfive",
+        crossDomain: true,
+        headers: {
+            "Authorization":token
+        },
+        data: request_params,
+
+        success: function( result ) {
+            let divId = "filtered-set" + "-video-timeline";
+            let data_key = "video-" + filter_name;
+            $("#" + divId).remove();
+            jQuery.data(document.body, data_key, result.Items);
+            if(result.Items.length > 0) {
+                $(".container").append("<div id='" + divId +  "' class='row video-list'" +
+                    " style='margin-top 25px;'></div>");
+                if(! refresh) {
+                    $("#" + divId).hide();
+                    let thtml = "<li " +
+                        " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
+                        "><a href='#' onclick='showTimeline(\"" + filter_name + "\")'>" + filter_name + "</a></li>";
+
+                    $("ul#filter-menu").append(thtml);
+                }
+                displayLatestVideos(result.Items, filter_name, divId);
+            }
+        }
+    });
+}
+
 function getLatestImagesbyCamera(camera_name, token, refresh) {
     // refresh = typeof refresh !== 'undefined' ?  refresh : false;
     let request_params = {};
@@ -157,7 +192,7 @@ function getCameraList(token) {
             Object.keys(filterlist).forEach(function(filter) {
                 thtml = "<li " +
                     " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
-                    "><a href='#' onclick='showTimeline(\"" + filter + "\")'>Filter: " + filter + "</a></li>";
+                    "><a href='#' onclick='showTimeline(\"filter:" + filter + "\")'>Filter: " + filter + "</a></li>";
 
                 $("ul#filter-menu").append(thtml);
             })
@@ -305,6 +340,15 @@ function showTimeline(scope, invoked_by) {
             $("#image-timeline").show();
         }
 
+    } else if(scope.startswith('filter:')){
+       filter_name = scope.replace('filter:', '');
+        if (type === 'video') {
+            getLatestVideosbyFilter(filter_name, user_token, true);
+        }
+        if (type === 'image') {
+            getLatestImagesbyCamera(filter_name, user_token, true);
+        }
+    
     } else {
         if (type === 'video') {
             // Camera name
