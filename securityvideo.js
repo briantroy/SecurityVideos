@@ -684,7 +684,7 @@ function loadNextVideos(camera) {
     let lastVideoTS = last_video_item['event_ts'];
     let captureDate = dateFromTS(lastVideoTS);
     if (jQuery.data(document.body, 'videos_in_last_request') === 0) {
-        // Got nothing last time... need to go back one day in time.
+        console.log("Got nothing last time... need to go back one day in time.");
         captureDate = dateFromTS(lastVideoTS - (60 * 60 * 24 * 1000));
     }
 
