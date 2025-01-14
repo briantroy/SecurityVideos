@@ -7,7 +7,7 @@
     text-decoration: none;
     display: block;
 }
-#camera-menu a:hover, #filter-menu a:hover, #filtering a:hover {
+#camera-menu a:hover, #filter-menu a:hover {
     color: #222222;
 }
 #camera-menu li, #filter-menu li, #filtering li {
