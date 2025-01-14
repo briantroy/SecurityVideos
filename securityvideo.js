@@ -19,12 +19,12 @@ function getLatest(token, eventType, render_callback) {
     let date_param = 'video_date';
     let target_div = 'video-timeline';
     let request_params = {};
-    request_params['num_results'] = 20;
+    request_params['num_results'] = 100;
     if(eventType === 'image') {
         base_uri = base_image_api_uri;
         date_param = 'image_date';
         target_div = 'image-timeline';
-        request_params['num_results'] = 10;
+        request_params['num_results'] = 100;
     }
     request_params[date_param] = datestring;
     let data_key = eventType + '-latest';
@@ -78,7 +78,7 @@ function getLatest(token, eventType, render_callback) {
 function getLatestVideosbyCamera(camera_name, token, refresh) {
     refresh = typeof refresh !== 'undefined' ?  refresh : false;
     let request_params = {};
-    request_params['num_results'] = 20;
+    request_params['num_results'] = 100;
     jQuery.data(document.body, 'view_scope', camera_name);
     jQuery.data(document.body, 'is_filter', false)
     $.ajax({
@@ -150,7 +150,7 @@ function getLatestVideosbyFilter(filter_name, token, refresh) {
 function getLatestImagesbyCamera(camera_name, token, refresh) {
     // refresh = typeof refresh !== 'undefined' ?  refresh : false;
     let request_params = {};
-    request_params['num_results'] = 10;
+    request_params['num_results'] = 100;
     $.ajax({
         url: base_image_api_uri + "/lastfive/" + camera_name,
         crossDomain: true,
@@ -466,7 +466,7 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
     } else {
         request_params['newer_than_ts'] = timestamp;
     }
-    request_params['num_results'] = 9;
+    request_params['num_results'] = 100;
     console.log(targetDiv);
     let thisURI = base_image_api_uri + '/lastfive';
     if(targetDiv !== '#image-timeline') {
@@ -770,11 +770,11 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
     } else {
         if(targetDiv !== '#video-timeline') {
             thisURI += "/" + camera_name;
-            request_params['num_results'] = 10;
+            request_params['num_results'] = 100;
             request_params['video_date'] = captureDate;
         } else {
             request_params['video_date'] = captureDate;
-            request_params['num_results'] = 10;
+            request_params['num_results'] = 100;
         }
     }
     console.log("more with: ");
