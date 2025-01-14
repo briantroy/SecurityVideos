@@ -239,6 +239,7 @@ function displayLatestVideos(videoItems, camera,  targetDiv) {
         $(targetDiv).append(thtml);
         idx += 1;
     });
+    jQuery.data(document.body, 'page_request_inflight', 0);
 
 }
 
@@ -331,6 +332,7 @@ function showTimeline(scope, invoked_by) {
             $(divname).hide();
         });
     }
+    jQuery.data(document.body, 'page_request_inflight', 1);
 
     if(scope ==='latest') {
         if (type === "video") {
