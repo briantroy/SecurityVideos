@@ -685,7 +685,7 @@ function displayImageLabels(object_key, targetDiv) {
 function loadNextVideos(camera) {
     let div_name = "#video-timeline";
     if(camera !== 'latest') {
-        div_name = "#" + camera + '-video-timeline';
+        div_name = "#camera-video-timeline";
     }
     console.log(camera);
     let data_key = 'video-' + camera;
@@ -735,7 +735,7 @@ function dateFromTS(ts) {
 function loadPrevVideos(camera) {
     let div_name = "#video-timeline";
     if(camera !== 'latest') {
-        div_name = "#" + camera + '-video-timeline';
+        div_name = '#camera-video-timeline';
     }
 
     let data_key = 'video-' + camera;
