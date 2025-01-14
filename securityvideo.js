@@ -742,16 +742,19 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
     } else {
         request_params['newer_than_ts'] = timestamp;
     }
-    request_params['num_results'] = 10;
+    
 
     let thisURI = base_video_api_uri + '/lastfive';
     if(jQuery.data(document.body, 'is_filter')) {
         request_params['filter'] = camera_name;
+        request_params['num_results'] = 200;
     } else {
         if(targetDiv !== '#video-timeline') {
             thisURI += "/" + camera_name;
+            request_params['num_results'] = 10;
         } else {
             request_params['video_date'] = captureDate;
+            request_params['num_results'] = 10;
         }
     }
     console.log("more with: ");
