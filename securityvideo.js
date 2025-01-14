@@ -748,10 +748,12 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
     if(jQuery.data(document.body, 'is_filter')) {
         request_params['filter'] = camera_name;
         request_params['num_results'] = 200;
+        request_params['video_date'] = captureDate;
     } else {
         if(targetDiv !== '#video-timeline') {
             thisURI += "/" + camera_name;
             request_params['num_results'] = 10;
+            request_params['video_date'] = captureDate;
         } else {
             request_params['video_date'] = captureDate;
             request_params['num_results'] = 10;
