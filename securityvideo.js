@@ -153,11 +153,19 @@ function getCameraList(token) {
             // loadCameraVids(result, token);
             console.log("New version")
             console.log(result);
+
+            filterlist.forEach(function(filter, idx) {
+                thtml = "<li " +
+                    " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
+                    "><a href='#' onclick='showTimeline(\"Filter: " + filter + "\")'>" + filter + "</a></li>";
+
+                $("ul#filter-menu").append(thtml);
+            })
             
             camlist.forEach(function(camera_name, idx) {
                 thtml = "<li " +
                         " onmouseover=\"this.style.background='aliceblue';\" onmouseout=\"this.style.background='white'\"" +
-                        "><a href='#' onclick='showTimeline(\"" + camera_name + "\")'>" + camera_name + "</a></li>";
+                        "><a href='#' onclick='showTimeline(\"Camera: " + camera_name + "\")'>" + camera_name + "</a></li>";
 
                 $("ul#camera-menu").append(thtml);
             })
