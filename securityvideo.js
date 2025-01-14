@@ -775,7 +775,6 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
         if(targetDiv !== '#video-timeline') {
             thisURI += "/" + camera_name;
             request_params['num_results'] = 100;
-            request_params['video_date'] = captureDate;
         } else {
             request_params['video_date'] = captureDate;
             request_params['num_results'] = 100;
