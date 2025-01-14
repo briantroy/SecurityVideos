@@ -58,6 +58,7 @@ function getLatest(token, eventType, render_callback) {
                             loadLabelsForImageSet(data_key, "#" + target_div);
                         }
                         jQuery.data(document.body, 'view_scope', 'latest');
+                        jQuery.data(document.body, 'is_filter', false)
                         render_callback(result.Items, 'latest', target_div);
                     }
                 });
@@ -68,6 +69,7 @@ function getLatest(token, eventType, render_callback) {
                 }
                 render_callback(result.Items, 'latest', target_div);
                 jQuery.data(document.body, 'view_scope', 'latest');
+                jQuery.data(document.body, 'is_filter', false)
             }
         }
     });
@@ -78,6 +80,7 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
     let request_params = {};
     request_params['num_results'] = 20;
     jQuery.data(document.body, 'view_scope', camera_name);
+    jQuery.data(document.body, 'is_filter', false)
     $.ajax({
         url: base_video_api_uri + "/lastfive/" + camera_name,
         crossDomain: true,
@@ -113,6 +116,7 @@ function getLatestVideosbyFilter(filter_name, token, refresh) {
     let request_params = {};
     request_params['filter'] = filter_name;
     jQuery.data(document.body, 'view_scope', filter_name);
+    jQuery.data(document.body, 'is_filter', true)
     $.ajax({
         url: base_video_api_uri + "/lastfive",
         crossDomain: true,
@@ -666,8 +670,14 @@ function loadNextVideos(camera) {
     if(camera !== 'latest') {
         div_name = "#" + camera + '-video-timeline';
     }
+    console.log(camera);
     let data_key = 'video-' + camera;
     let video_data = jQuery.data(document.body, data_key);
+    let is_filter = jQuery.data(document.body, 'is_filter');
+    if(is_filter) {
+        div_name = '#filtered-set-video-timeline';
+    }
+
 
     let last_video_item = video_data[video_data.length - 1];
 
@@ -735,13 +745,17 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
     request_params['num_results'] = 10;
 
     let thisURI = base_video_api_uri + '/lastfive';
-    if(targetDiv !== '#video-timeline') {
-        thisURI += "/" + camera_name;
+    if(jQuery.data(document.body, 'is_filter')) {
+        request_params['filter'] = camera_name;
     } else {
-        request_params['video_date'] = captureDate;
+        if(targetDiv !== '#video-timeline') {
+            thisURI += "/" + camera_name;
+        } else {
+            request_params['video_date'] = captureDate;
+        }
     }
-    // console.log("more with: ");
-    // console.log(request_params);
+    console.log("more with: ");
+    console.log(request_params);
 
     $.ajax({
         url: thisURI,
