@@ -687,7 +687,9 @@ function loadNextVideos(camera) {
     if(camera !== 'latest') {
         div_name = "#camera-video-timeline";
     }
+    console.log("in loadNextVideos");
     console.log(camera);
+
     let data_key = 'video-' + camera;
     let video_data = jQuery.data(document.body, data_key);
     console.log(video_data);
