@@ -337,16 +337,21 @@ function showTimeline(scope, invoked_by) {
             getLatest(user_token, type, displayLatestVideos);
             $("#video-timeline").show();
             $("#image-timeline").hide();
+            $("#filtered-set-video-timeline").hide();
         }
         if (type === "image") {
             getLatest(user_token, type, displayLatestImagesCarousel);
             $("#video-timeline").hide();
             $("#image-timeline").show();
+            $("#filtered-set-image-timeline").hide();
         }
 
     } else if(scope.startsWith('filter:')){
        filter_name = scope.replace('filter:', '');
         if (type === 'video') {
+            $("#video-timeline").hide();
+            $("#image-timeline").hide();
+            $("#filtered-set-image-timeline").show();
             getLatestVideosbyFilter(filter_name, user_token, true);
         }
         if (type === 'image') {
@@ -354,11 +359,21 @@ function showTimeline(scope, invoked_by) {
         }
     
     } else {
+        $("#video-timeline").show();
+        $("#image-timeline").hide();
+        $("#filtered-set-image-timeline").hide();
         if (type === 'video') {
             // Camera name
+            $("#video-timeline").show();
+            $("#image-timeline").hide();
+            $("#filtered-set-image-timeline").hide();
             getLatestVideosbyCamera(scope, user_token, true);
+
         }
         if (type === 'image') {
+            $("#video-timeline").hide();
+            $("#image-timeline").show();
+            $("#filtered-set-image-timeline").hide();
             getLatestImagesbyCamera(scope, user_token, false);
         }
 
