@@ -47,6 +47,7 @@ $( document ).ready(function() {
 function onSignIn(googleUser) {
     let profile = googleUser.getBasicProfile();
     let auth_resp = googleUser.getAuthResponse();
+    console.log(auth_resp)
     document.getElementById('usrimg').src=profile.getImageUrl();
     $(".identity-name").append(profile.getName() + "<br/>" + profile.getEmail());
     jQuery.data(document.body, 'authData', auth_resp);
