@@ -324,17 +324,7 @@ function showTimeline(scope, invoked_by) {
     } else {
         type = 'video';
     }
-    // Start by hiding all the camera & image divs
-    let divname = "";
-    let temp_type = "";
-    for (let i = 0; i < types.length; ++i) {
-        temp_type = types[i];
-        $("#" + temp_type + "-timeline").hide();
-        camlist.forEach(function (camera) {
-            divname = "#" + camera + "-" + temp_type + "-timeline";
-            $(divname).hide();
-        });
-    }
+
     jQuery.data(document.body, 'page_request_inflight', 1);
 
     $('#current-view').empty();
