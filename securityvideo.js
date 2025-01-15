@@ -116,7 +116,7 @@ function getLatestVideosbyFilter(filter_name, token, refresh) {
     let request_params = {};
     request_params['filter'] = filter_name;
     request_params['num_results'] = 200;
-    request_params['video_date'] = getDate(Date.now());
+    request_params['video_date'] = dateFromTS(Date.now());
     jQuery.data(document.body, 'view_scope', filter_name);
     jQuery.data(document.body, 'is_filter', true)
 
