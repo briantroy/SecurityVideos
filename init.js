@@ -45,34 +45,38 @@ $( document ).ready(function() {
 });
 
 function onSignIn(googleUser) {
-    let profile = googleUser.getBasicProfile();
-    let auth_resp = googleUser.getAuthResponse();
-    console.log(auth_resp)
-    document.getElementById('usrimg').src=profile.getImageUrl();
-    $(".identity-name").append(profile.getName() + "<br/>" + profile.getEmail());
-    jQuery.data(document.body, 'authData', auth_resp);
+    console.log(googleUser);
+    const responsePayload = decodeJwtResponse(googleUser.credential)
+    
+    console.log(responsePayload);
+
+    user_token = googleUser.credential;
+    console.log(user_token);
+
+    document.getElementById('usrimg').src=responsePayload.picture;
+    $(".identity-name").append(responsePayload.name + "<br/>" + responsePayload.email);
+    jQuery.data(document.body, 'authData', googleUser);
     $("#usrimg").show();
     $("#log-out").show();
-    $(".g-signin2").hide();
-    user_token = auth_resp.id_token;
+    $(".g_id_signin").hide();
     $(".options").show();
     getCameraList(user_token);
 
 }
 
 function signOut() {
-    let auth2 = gapi.auth2.getAuthInstance();
-    auth2.signOut().then(function () {
-        $(".video-list").empty();
-        $(".image-list").empty();
-        $(".navigation").hide();
-        clickOptions();
-        $(".options").hide();
-        $(".g-signin2").show();
-        $("#usrimg").hide();
-        $("#log-out").hide();
-        $(".identity-name").empty();
-    });
+
+    location.reload();
+    
+}
+function decodeJwtResponse(token) {
+    let base64Url = token.split('.')[1];
+    let base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    let jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+
+    return JSON.parse(jsonPayload);
 }
 
 
