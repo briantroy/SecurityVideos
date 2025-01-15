@@ -337,6 +337,7 @@ function showTimeline(scope, invoked_by) {
     }
     jQuery.data(document.body, 'page_request_inflight', 1);
 
+    $('#current-view').empty();
     if(scope ==='latest') {
         if (type === "video") {
             getLatest(user_token, type, displayLatestVideos);
@@ -344,6 +345,7 @@ function showTimeline(scope, invoked_by) {
             $("#image-timeline").hide();
             $("#filtered-set-video-timeline").hide();
             $('#camera-video-timeline').hide();
+            $('#current-view').append("Latest Videos");
         }
         if (type === "image") {
             getLatest(user_token, type, displayLatestImagesCarousel);
@@ -351,10 +353,12 @@ function showTimeline(scope, invoked_by) {
             $("#image-timeline").show();
             $("#filtered-set-video-timeline").hide();
             $('#camera-video-timeline').hide();
+            $('#current-view').append("Latest Videos");
         }
 
     } else if(scope.startsWith('filter:')){
        filter_name = scope.replace('filter:', '');
+       $('#current-view').append(scope);
         if (type === 'video') {
             $("#video-timeline").hide();
             $("#image-timeline").hide();
@@ -367,6 +371,7 @@ function showTimeline(scope, invoked_by) {
         }
     
     } else {
+        $('#current-view').append("Camera: " + scope);
         if (type === 'video') {
             // Camera name
             $("#video-timeline").hide();
