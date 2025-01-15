@@ -115,8 +115,10 @@ function getLatestVideosbyFilter(filter_name, token, refresh) {
     refresh = typeof refresh !== 'undefined' ?  refresh : false;
     let request_params = {};
     request_params['filter'] = filter_name;
+    request_params['num_results'] = 200;
     jQuery.data(document.body, 'view_scope', filter_name);
     jQuery.data(document.body, 'is_filter', true)
+
     $.ajax({
         url: base_video_api_uri + "/lastfive",
         crossDomain: true,
