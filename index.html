@@ -44,7 +44,8 @@
   <script src="aws-sdk.js"></script>
   <script src="jquery-3.1.0.js"></script>
   <script src="securityvideo.js"></script>
-  <script src="https://apis.google.com/js/platform.js" async defer></script>
+  <!-- <script src="https://apis.google.com/js/platform.js" async defer></script> -->
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script type="text/javascript" src="slick/slick.min.js"></script>
   <script src="init.js"></script>
 
@@ -57,7 +58,19 @@
     <div class="row identity" style="margin-top: 45px;">
       <div class="u-pull-left">
         <image id='usrimg' src=""></image>
-        <div class="g-signin2" data-onsuccess="onSignIn"></div>
+        <div id="g_id_onload"
+          data-client_id="522648161569-ne8ldk1h7bcf2mh15ogrf2ltsc75bvlk.apps.googleusercontent.com"
+          data-callback="onSignIn">
+        </div>
+        <div id="g_id_signin"
+          data-type="standard"
+          data-size="large"
+          data-theme="outline"
+          data-text="sign_in_with"
+          data-shape="rectangular"
+          data-logo_alignment="left">
+        </div>
+        <!-- <div class="g-signin2" data-onsuccess="onSignIn"></div> -->
         <div class="identity-name"></div>
         <div id="current-view"></div>
       </div>
