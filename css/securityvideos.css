@@ -33,6 +33,11 @@
 #usrimg {
     display: block;
 }
+#current-view {
+    padding-top: 15px;
+    padding-bottom: 15px;
+    font-weight: bold;
+}
 #log-out {
     display: block;
 }

@@ -358,7 +358,7 @@ function showTimeline(scope, invoked_by) {
 
     } else if(scope.startsWith('filter:')){
        filter_name = scope.replace('filter:', '');
-       $('#current-view').append(scope);
+       $('#current-view').append('Filter: ' + filter_name);
         if (type === 'video') {
             $("#video-timeline").hide();
             $("#image-timeline").hide();
