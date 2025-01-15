@@ -332,6 +332,7 @@ function showTimeline(scope, invoked_by) {
         if (type === "video") {
             getLatest(user_token, type, displayLatestVideos);
             $("#video-timeline").show();
+            $('#video-timeline').empty();
             $("#image-timeline").hide();
             $("#filtered-set-video-timeline").hide();
             $('#camera-video-timeline').hide();
@@ -341,6 +342,7 @@ function showTimeline(scope, invoked_by) {
             getLatest(user_token, type, displayLatestImagesCarousel);
             $("#video-timeline").hide();
             $("#image-timeline").show();
+            $("#image-timeline").empty();
             $("#filtered-set-video-timeline").hide();
             $('#camera-video-timeline').hide();
             $('#current-view').append("Latest Videos");
@@ -353,6 +355,7 @@ function showTimeline(scope, invoked_by) {
             $("#video-timeline").hide();
             $("#image-timeline").hide();
             $("#filtered-set-video-timeline").show();
+            $('#filtered-set-video-timeline').empty();
             $('#camera-video-timeline').hide();
             getLatestVideosbyFilter(filter_name, user_token, true);
         }
@@ -368,12 +371,14 @@ function showTimeline(scope, invoked_by) {
             $("#image-timeline").hide();
             $("#filtered-set-video-timeline").hide();
             $('#camera-video-timeline').show();
+            $('#camera-video-timeline').empty();
             getLatestVideosbyCamera(scope, user_token, true);
 
         }
         if (type === 'image') {
             $("#video-timeline").hide();
             $("#image-timeline").show();
+            $('#image-timeline').empty();
             $("#filtered-set-video-timeline").hide();
             $('#camera-video-timeline').hide();
             getLatestImagesbyCamera(scope, user_token, false);
