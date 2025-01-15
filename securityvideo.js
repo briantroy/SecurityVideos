@@ -193,8 +193,8 @@ function getCameraList(token) {
             filterlist = result['filters'];
 
             // loadCameraVids(result, token);
-            console.log("New version")
-            console.log(result);
+            // console.log"New version")
+            // console.logresult);
 
             Object.keys(filterlist).forEach(function(filter) {
                 thtml = "<li " +
@@ -316,7 +316,7 @@ function displayLatestImagesCarousel(videoItems, camera, targetDiv) {
 function showTimeline(scope, invoked_by) {
     let types = ["image","video"];
     type = types[0];
-    console.log(scope);
+    // console.log(scope);
     $("#current-video").empty();
     $("#current-image").empty();
     if ($("#show-images-opt").is(':checked')) {
@@ -472,7 +472,7 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
         request_params['newer_than_ts'] = timestamp;
     }
     request_params['num_results'] = 100;
-    console.log(targetDiv);
+    // console.logtargetDiv);
     let thisURI = base_image_api_uri + '/lastfive';
     if(targetDiv !== '#image-timeline') {
         if(targetDiv.startsWith('#filtered-set'))  {
@@ -483,8 +483,8 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
     } else {
         request_params['image_date'] = captureDate;
     }
-    console.log("more with: ");
-    console.log(request_params);
+    // console.log"more with: ");
+    // console.logrequest_params);
 
     $.ajax({
         url: thisURI,
@@ -692,12 +692,12 @@ function loadNextVideos(camera) {
     if(camera !== 'latest') {
         div_name = "#camera-video-timeline";
     }
-    console.log("in loadNextVideos");
-    console.log(camera);
+    // console.log("in loadNextVideos");
+    // console.log(camera);
 
     let data_key = 'video-' + camera;
     let video_data = jQuery.data(document.body, data_key);
-    console.log(video_data);
+    // console.logvideo_data);
     let is_filter = jQuery.data(document.body, 'is_filter');
     if(is_filter) {
         div_name = '#filtered-set-video-timeline';
@@ -709,7 +709,7 @@ function loadNextVideos(camera) {
     let lastVideoTS = last_video_item['event_ts'];
     let captureDate = dateFromTS(lastVideoTS);
     if (jQuery.data(document.body, 'videos_in_last_request') === 0) {
-        console.log("Got nothing last time... need to go back one day in time.");
+        // console.log"Got nothing last time... need to go back one day in time.");
         captureDate = dateFromTS(lastVideoTS - (60 * 60 * 24 * 1000));
     }
 
@@ -783,8 +783,8 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
             request_params['num_results'] = 100;
         }
     }
-    console.log("more with: ");
-    console.log(request_params);
+    // console.log"more with: ");
+    // console.logrequest_params);
 
     $.ajax({
         url: thisURI,

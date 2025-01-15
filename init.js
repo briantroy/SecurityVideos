@@ -34,7 +34,7 @@ $( document ).ready(function() {
     });
     $(window).scroll(function () {
         if (($(document).height()) <= $(window).scrollTop() + $(window).height()) {
-            console.log("End Of The Page for: " + jQuery.data(document.body, 'view_scope'));
+            // console.log("End Of The Page for: " + jQuery.data(document.body, 'view_scope'));
             if (jQuery.data(document.body, 'page_request_inflight') === 0) {
                 jQuery.data(document.body, 'page_request_inflight', 1);
                 loadNextVideos(jQuery.data(document.body, 'view_scope'));
@@ -45,13 +45,13 @@ $( document ).ready(function() {
 });
 
 function onSignIn(googleUser) {
-    console.log(googleUser);
+    // console.log(googleUser);
     const responsePayload = decodeJwtResponse(googleUser.credential)
     
-    console.log(responsePayload);
+    // console.log(responsePayload);
 
     user_token = googleUser.credential;
-    console.log(user_token);
+    // console.log(user_token);
 
     document.getElementById('usrimg').src=responsePayload.picture;
     $(".identity-name").append(responsePayload.name + "<br/>" + responsePayload.email);
