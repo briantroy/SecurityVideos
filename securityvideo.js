@@ -7,6 +7,27 @@ const base_video_api_uri = video_api_host + '';
 const base_image_api_uri = video_api_host + '/still-images';
 var loadWait;
 
+function denyUserForever() {
+    alert("You are not authorized to use this site.");
+    location.reload();
+}
+
+function tokenExpired() {
+    alert("Your session has expired. Please log in again.");
+    location.reload();
+}
+
+function failedAPICall(resultCode) {
+    if (resultCode === 401) {
+        tokenExpired();
+    } else if (resultCode === 403) {
+      denyUserForever();
+    } else {
+        alert("An error occurred. Please try again later.");
+        location.reload();
+    }
+}
+
 function getLatest(token, eventType, render_callback) {
     let dateObj = new Date();
     let month = dateObj.getMonth() + 1;
@@ -71,7 +92,10 @@ function getLatest(token, eventType, render_callback) {
                 jQuery.data(document.body, 'view_scope', 'latest');
                 jQuery.data(document.body, 'is_filter', false)
             }
-        }
+        },
+        error: function( result ) {
+            failedAPICall(result.status);
+        }  
     });
 }
 
@@ -106,8 +130,11 @@ function getLatestVideosbyCamera(camera_name, token, refresh) {
                     $("ul#camera-menu").append(thtml);
                 }
                 displayLatestVideos(result.Items, camera_name, divId);
-            }
-        }
+            } 
+        },
+        error: function( result ) {
+            failedAPICall(result.status);
+        }  
     });
 }
 
@@ -146,7 +173,10 @@ function getLatestVideosbyFilter(filter_name, token, refresh) {
                 }
                 displayLatestVideos(result.Items, filter_name, divId);
             }
-        }
+        },
+        error: function( result ) {
+            failedAPICall(result.status);
+        }  
     });
 }
 
@@ -174,7 +204,10 @@ function getLatestImagesbyCamera(camera_name, token, refresh) {
 
                 displayLatestImagesCarousel(result.Items, camera_name, divId);
             }
-        }
+        },
+        error: function( result ) {
+            failedAPICall(result.status);
+        }  
     });
 }
 
@@ -214,7 +247,10 @@ function getCameraList(token) {
 
             // Now load latest
             getLatest(user_token, "video", displayLatestVideos);
-        }
+        },
+        error: function( result ) {
+            failedAPICall(result.status);
+        }  
     });
 }
 
@@ -497,7 +533,10 @@ function loadMoreImages(targetDiv, camera_name, captureDate, token, timestamp, d
         success: function( result ) {
             if (direction === 'earlier') displayImagesAtEnd(result.Items, camera_name, targetDiv);
             if (direction === 'later') displayImagesAtBeginning(result.Items, camera_name, targetDiv);
-        }
+        },
+        error: function( result ) {
+            failedAPICall(result.status);
+        }  
     });
 }
 
@@ -647,7 +686,10 @@ function getCameraImageLabels(image_key) {
 
         success: function( result ) {
             jQuery.data(document.body, image_key, roundAndSortConfidenceValues(result.Items));
-        }
+        },
+        error: function( result ) {
+            failedAPICall(result.status);
+        }  
     });
 }
 
@@ -809,7 +851,10 @@ function loadMoreVideos(targetDiv, camera_name, captureDate, token, timestamp, d
                 jQuery.data(document.body, data_key, result.Items);
                 displayVideosAtBeginning(result.Items, camera_name, targetDiv, 0);
             }
-        }
+        },
+        error: function( result ) {
+            failedAPICall(result.status);
+        }  
     });
 }
 
