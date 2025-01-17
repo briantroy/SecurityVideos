@@ -21,7 +21,7 @@ function failedAPICall(resultCode) {
     if (resultCode === 401) {
         tokenExpired();
     } else if (resultCode === 403) {
-      denyUserForever();
+        denyUserForever();
     } else {
         alert("An error occurred. Please try again later.");
         location.reload();
