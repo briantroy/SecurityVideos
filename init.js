@@ -43,14 +43,18 @@ $( document ).ready(function() {
     });
 
     var script = document.querySelector('#gid');
-    script.addEventListener('load', function() {
+    window.onGoogleLibrrayLoad = function() {
         google.accounts.id.initialize({ 
             client_id: '522648161569-735fsdpk8vf40tl854ktv0kg9629hn8d.apps.googleusercontent.com', 
             callback: onSignIn, 
             auto_prompt: true,
             allowed_parent_origin: "https://security-videos.brianandkelly.ws, https://sec-vid-dev.brianandkelly.ws, http://localhost:5500",
-            state_cookie_domain: 'brianandkelly.ws'});
-    });
+            state_cookie_domain: 'brianandkelly.ws'
+        });
+        
+        google.accounts.id.prompt();
+    };
+    
 
 });
 
@@ -75,7 +79,7 @@ function onSignIn(googleUser) {
 }
 
 function signOut() {
-
+    google.accounts.id.disableAutoSelect();
     location.reload();
     
 }
