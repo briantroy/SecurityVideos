@@ -42,7 +42,6 @@ $( document ).ready(function() {
         }
     });
 
-    var script = document.querySelector('#gid');
     window.onGoogleLibrrayLoad = function() {
         google.accounts.id.initialize({ 
             client_id: '522648161569-735fsdpk8vf40tl854ktv0kg9629hn8d.apps.googleusercontent.com', 
