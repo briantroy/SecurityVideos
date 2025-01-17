@@ -246,6 +246,7 @@ function getCameraList(token) {
             })
 
             // Now load latest
+            $("#current-view").append("Latest Videos - <a href='#' onclick='showTimeline(\"latest\", \"options\")'>Refresh</a>");
             getLatest(user_token, "video", displayLatestVideos);
         },
         error: function( result ) {
@@ -372,7 +373,7 @@ function showTimeline(scope, invoked_by) {
             $("#image-timeline").hide();
             $("#filtered-set-video-timeline").hide();
             $('#camera-video-timeline').hide();
-            $('#current-view').append("Latest Videos");
+            $("#current-view").append("Latest Videos - <a href='#' onclick='showTimeline(\"latest\", \"options\")'>Refresh</a>");
         }
         if (type === "image") {
             getLatest(user_token, type, displayLatestImagesCarousel);
@@ -381,12 +382,12 @@ function showTimeline(scope, invoked_by) {
             $("#image-timeline").empty();
             $("#filtered-set-video-timeline").hide();
             $('#camera-video-timeline').hide();
-            $('#current-view').append("Latest Videos");
+            $("#current-view").append("Latest Videos - <a href='#' onclick='showTimeline(\"latest\", \"options\")'>Refresh</a>");
         }
 
     } else if(scope.startsWith('filter:')){
        filter_name = scope.replace('filter:', '');
-       $('#current-view').append('Filter: ' + filter_name);
+       $("#current-view").append("Filter: " + filter_name + " - <a href='#' onclick='showTimeline(\"" + scope + "\", \"options\")'>Refresh</a>");
         if (type === 'video') {
             $("#video-timeline").hide();
             $("#image-timeline").hide();
@@ -400,7 +401,7 @@ function showTimeline(scope, invoked_by) {
         }
     
     } else {
-        $('#current-view').append("Camera: " + scope);
+        $("#current-view").append("Camera: " + scope + " - <a href='#' onclick='showTimeline(\"" + scope + "\", \"options\")'>Refresh</a>");
         if (type === 'video') {
             // Camera name
             $("#video-timeline").hide();
