@@ -103,14 +103,15 @@ const Timeline = ({ scope, token }) => {
             <div className="timeline">
                 {groupedEvents.map((group, index) => {
                     const key = group.map(e => e.object_key).join('-');
+                    const isSelected = selectedMedia && key === selectedMedia.map(e => e.object_key).join('-');
                     if (groupedEvents.length === index + 1) {
                         return (
                             <div ref={lastEventElementRef} key={key}>
-                                <EventCard event={group} onSelectMedia={handleSelectMedia} />
+                                <EventCard event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} />
                             </div>
                         );
                     } else {
-                        return <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} />;
+                        return <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} />;
                     }
                 })}
                  {loading && <div className="loading-indicator">Loading...</div>}

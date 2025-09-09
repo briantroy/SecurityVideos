@@ -1,11 +1,12 @@
 import React from 'react';
 
-const EventCard = ({ event: eventGroup, onSelectMedia }) => {
+const EventCard = ({ event: eventGroup, onSelectMedia, isSelected }) => {
     const firstEvent = eventGroup[0];
     const eventDate = new Date(firstEvent.event_ts);
+    const cardClassName = `event-card ${isSelected ? 'selected' : ''}`;
 
     return (
-        <div className="event-card" onClick={() => onSelectMedia(eventGroup)}>
+        <div className={cardClassName} onClick={() => onSelectMedia(eventGroup)}>
             <div className="event-card-thumbnail">
                 {/* Placeholder for thumbnail */}
                 {eventGroup.length > 1 && (

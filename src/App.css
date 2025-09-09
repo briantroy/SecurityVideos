@@ -239,11 +239,16 @@
   transition: all 0.2s ease-in-out;
   position: relative;
   overflow: hidden;
+  border: 2px solid transparent;
 }
 
 .event-card:hover {
   transform: translateY(-3px);
   box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+.event-card.selected {
+  border-color: #3498db;
 }
 
 .event-card-thumbnail {
