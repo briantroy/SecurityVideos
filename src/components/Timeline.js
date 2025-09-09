@@ -62,7 +62,7 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
 
         getEvents(token, scope, options)
             .then(data => {
-                setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts / 1000 : null);
+                setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts : null);
                 const newEvents = loadMore ? [...events, ...data.Items] : data.Items;
                 setEvents(newEvents);
 
