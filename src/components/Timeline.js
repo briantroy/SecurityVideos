@@ -62,7 +62,15 @@ const Timeline = ({ scope, token }) => {
                 setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts.N : null);
                 const newEvents = loadMore ? [...events, ...data.Items] : data.Items;
                 setEvents(newEvents);
-                const grouped = groupEvents(newEvents);
+
+                let grouped;
+                if (scope === 'latest') {
+                    // In "latest" view, each event is its own group
+                    grouped = newEvents.map(event => [event]);
+                } else {
+                    // For camera or group views, group events by time
+                    grouped = groupEvents(newEvents);
+                }
                 setGroupedEvents(grouped);
 
                 if (!loadMore && grouped.length > 0) {
