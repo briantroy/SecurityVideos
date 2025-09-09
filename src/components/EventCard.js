@@ -1,20 +1,24 @@
 import React from 'react';
 
-const EventCard = ({ event, onSelectMedia }) => {
-    const eventDate = new Date(event.event_ts);
+const EventCard = ({ event: eventGroup, onSelectMedia }) => {
+    const firstEvent = eventGroup[0];
+    const eventDate = new Date(firstEvent.event_ts);
 
     return (
-        <div className="event-card" onClick={() => onSelectMedia(event)}>
+        <div className="event-card" onClick={() => onSelectMedia(eventGroup)}>
             <div className="event-card-thumbnail">
                 {/* Placeholder for thumbnail */}
+                {eventGroup.length > 1 && (
+                    <span className="video-count-badge">{eventGroup.length} videos</span>
+                )}
             </div>
             <div className="event-card-body">
                 <div className="event-card-header">
-                    <span className="camera-name">{event.camera_name}</span>
+                    <span className="camera-name">{firstEvent.camera_name}</span>
                     <span className="timestamp">{eventDate.toLocaleString()}</span>
                 </div>
                 <div className="event-card-details">
-                    <span className="event-type">{event.event_type}</span>
+                    <span className="event-type">{firstEvent.event_type}</span>
                 </div>
             </div>
             <div className="event-card-play-icon">

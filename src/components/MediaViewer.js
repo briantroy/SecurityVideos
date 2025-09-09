@@ -1,22 +1,47 @@
 
-const MediaViewer = ({ event, token }) => {
+import React, { useState, useEffect } from 'react';
 
-    if (!event) return null;
+const MediaViewer = ({ event: eventGroup, token }) => {
+    const [currentIndex, setCurrentIndex] = useState(0);
 
-    const eventDate = new Date(event.event_ts);
+    useEffect(() => {
+        setCurrentIndex(0);
+    }, [eventGroup]);
+
+    if (!eventGroup || eventGroup.length === 0) {
+        return null;
+    }
+
+    const currentEvent = eventGroup[currentIndex];
+    const eventDate = new Date(currentEvent.event_ts);
+
+    const handleNext = () => {
+        setCurrentIndex((prevIndex) => (prevIndex + 1) % eventGroup.length);
+    };
+
+    const handlePrev = () => {
+        setCurrentIndex((prevIndex) => (prevIndex - 1 + eventGroup.length) % eventGroup.length);
+    };
 
     return (
         <div className="media-viewer">
             <div className="media-container">
-                {event.video_name ? (
-                    <video src={event.uri} controls preload="auto" autoPlay={event.autoplay} className="video-embed" />
+                {currentEvent.video_name ? (
+                    <video src={currentEvent.uri} controls preload="auto" autoPlay={currentEvent.autoplay || currentIndex > 0} className="video-embed" />
                 ) : (
-                    <img src={event.uri} alt={`Event from ${event.camera_name}`} className="image-embed" />
+                    <img src={currentEvent.uri} alt={`Event from ${currentEvent.camera_name}`} className="image-embed" />
                 )}
             </div>
             <div className="media-info">
-                <h3>{event.camera_name}</h3>
+                <h3>{currentEvent.camera_name}</h3>
                 <p>{eventDate.toLocaleString()}</p>
+                {eventGroup.length > 1 && (
+                    <div className="media-navigation">
+                        <button onClick={handlePrev}>Previous</button>
+                        <span>{currentIndex + 1} of {eventGroup.length}</span>
+                        <button onClick={handleNext}>Next</button>
+                    </div>
+                )}
             </div>
         </div>
     );

@@ -253,6 +253,19 @@
   font-size: 1.2rem;
   color: #aaa;
   flex-shrink: 0;
+  position: relative;
+}
+
+.video-count-badge {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    background-color: rgba(0,0,0,0.7);
+    color: white;
+    padding: 3px 8px;
+    border-radius: 12px;
+    font-size: 0.8rem;
+    font-weight: bold;
 }
 
 .event-card-body {
@@ -305,4 +318,24 @@
 
 .view-button {
     display: none; /* Hide the old button */
+}
+
+.media-navigation {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 10px;
+}
+
+.media-navigation button {
+    padding: 8px 12px;
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    cursor: pointer;
+}
+
+.media-navigation button:hover {
+    background-color: #2980b9;
 }

@@ -3,8 +3,36 @@ import EventCard from './EventCard';
 import MediaViewer from './MediaViewer';
 import { getEvents } from '../api';
 
+const groupEvents = (events) => {
+    if (events.length === 0) {
+        return [];
+    }
+
+    // Assuming events are already sorted by timestamp from the API
+    const groupedEvents = [];
+    let currentGroup = [events[0]];
+
+    for (let i = 1; i < events.length; i++) {
+        const previousEvent = currentGroup[currentGroup.length - 1];
+        const currentEvent = events[i];
+        const timeDifference = Math.abs(currentEvent.event_ts - previousEvent.event_ts);
+
+        if (timeDifference <= 60000) {
+            currentGroup.push(currentEvent);
+        } else {
+            groupedEvents.push(currentGroup);
+            currentGroup = [currentEvent];
+        }
+    }
+
+    groupedEvents.push(currentGroup);
+    return groupedEvents;
+};
+
+
 const Timeline = ({ scope, token }) => {
     const [events, setEvents] = useState([]);
+    const [groupedEvents, setGroupedEvents] = useState([]);
     const [nextToken, setNextToken] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -12,13 +40,12 @@ const Timeline = ({ scope, token }) => {
 
     const observer = useRef();
 
-    // This function will be called when the last element in the list is visible
     const lastEventElementRef = useCallback(node => {
         if (loading) return;
         if (observer.current) observer.current.disconnect();
         observer.current = new IntersectionObserver(entries => {
             if (entries[0].isIntersecting && nextToken) {
-                loadEvents(true); // Load more events
+                loadEvents(true);
             }
         });
         if (node) observer.current.observe(node);
@@ -35,8 +62,11 @@ const Timeline = ({ scope, token }) => {
                 setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts.N : null);
                 const newEvents = loadMore ? [...events, ...data.Items] : data.Items;
                 setEvents(newEvents);
-                if (!loadMore && newEvents.length > 0) {
-                    setSelectedMedia(newEvents[0]);
+                const grouped = groupEvents(newEvents);
+                setGroupedEvents(grouped);
+
+                if (!loadMore && grouped.length > 0) {
+                    setSelectedMedia(grouped[0]);
                 }
             })
             .catch(err => {
@@ -48,31 +78,31 @@ const Timeline = ({ scope, token }) => {
             });
     };
 
-    // Effect to load events when the scope (selected camera/filter) changes
     useEffect(() => {
         setSelectedMedia(null);
         setEvents([]);
+        setGroupedEvents([]);
         setNextToken(null);
         loadEvents();
     }, [scope, token]);
 
-    const handleSelectMedia = (event) => {
-        setSelectedMedia({ ...event, autoplay: true });
+    const handleSelectMedia = (eventGroup) => {
+        setSelectedMedia(eventGroup);
     };
 
     return (
         <div className="timeline-container">
             <div className="timeline">
-                {events.map((event, index) => {
-                    // Attach the ref to the last element
-                    if (events.length === index + 1) {
+                {groupedEvents.map((group, index) => {
+                    const key = group.map(e => e.object_key).join('-');
+                    if (groupedEvents.length === index + 1) {
                         return (
-                            <div ref={lastEventElementRef} key={event.object_key}>
-                                <EventCard event={event} onSelectMedia={handleSelectMedia} />
+                            <div ref={lastEventElementRef} key={key}>
+                                <EventCard event={group} onSelectMedia={handleSelectMedia} />
                             </div>
                         );
                     } else {
-                        return <EventCard key={event.object_key} event={event} onSelectMedia={handleSelectMedia} />;
+                        return <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} />;
                     }
                 })}
                  {loading && <div className="loading-indicator">Loading...</div>}
