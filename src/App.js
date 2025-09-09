@@ -6,6 +6,7 @@ import { getCameraList } from './api';
 import './App.css';
 
 const GOOGLE_CLIENT_ID = "522648161569-735fsdpk8vf40tl854ktv0kg9629hn8d.apps.googleusercontent.com";
+const GOOGLE_DOMAIN_ALLOWED = "brianandkelly.ws";
 
 function App() {
     const [userToken, setUserToken] = useState(null);
@@ -65,11 +66,16 @@ function App() {
 
     if (!userToken) {
         return (
-            <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID}>
+            <GoogleOAuthProvider clientId={GOOGLE_CLIENT_ID} 
+                                 state_cookie_domain={GOOGLE_DOMAIN_ALLOWED}
+                                 allowed_parent_origin="https://security-videos.brianandkelly.ws, https://sec-vid-dev.brianandkelly.ws, http://localhost:3000"
+                                 auto_prompt="true"
+                                 auto_select="true">
                 <div className="login-container">
                     <h2>Security Camera Viewer</h2>
                     <p>Please sign in to continue.</p>
                     <GoogleLogin
+                        hosted_domain={GOOGLE_DOMAIN_ALLOWED}
                         onSuccess={handleLoginSuccess}
                         onError={handleLoginError}
                         useOneTap
