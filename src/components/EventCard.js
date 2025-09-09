@@ -1,7 +1,7 @@
 import React from 'react';
 
 const EventCard = ({ event, onSelectMedia }) => {
-    const eventDate = new Date(event.event_ts * 1000);
+    const eventDate = new Date(event.event_ts);
 
     return (
         <div className="event-card" onClick={() => onSelectMedia(event)}>

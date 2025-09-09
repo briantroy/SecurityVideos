@@ -3,7 +3,7 @@ const MediaViewer = ({ event, token }) => {
 
     if (!event) return null;
 
-    const eventDate = new Date(event.event_ts * 1000);
+    const eventDate = new Date(event.event_ts);
 
     return (
         <div className="media-viewer">
