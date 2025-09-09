@@ -95,7 +95,9 @@ const Timeline = ({ scope, token }) => {
     }, [scope, token]);
 
     const handleSelectMedia = (eventGroup) => {
-        setSelectedMedia(eventGroup);
+        const newSelectedMedia = [...eventGroup];
+        newSelectedMedia.autoplay = true;
+        setSelectedMedia(newSelectedMedia);
     };
 
     return (
