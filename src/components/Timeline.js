@@ -33,11 +33,13 @@ const groupEvents = (events) => {
 const Timeline = ({ scope, token, scrollableContainer }) => {
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
-    const [seenGroups, setSeenGroups] = useState([]); // new state
+    const [seenGroups, setSeenGroups] = useState([]);
     const [nextToken, setNextToken] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [selectedMedia, setSelectedMedia] = useState(null);
+    const [videoDate, setVideoDate] = useState(new Date());
+    const [zeroEntryCount, setZeroEntryCount] = useState(0);
 
     const observer = useRef();
 
@@ -54,24 +56,51 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
         }
     }, [loading, nextToken, scrollableContainer]);
 
-    const loadEvents = (loadMore = false) => {
+    const loadEvents = (loadMore = false, date = videoDate) => {
         setLoading(true);
         setError(null);
 
-        const options = loadMore && nextToken ? { older_than_ts: nextToken } : {};
+        const formattedDate = date.toISOString().split('T')[0];
+        const options = {
+            num_results: 50,
+            ...(loadMore && nextToken && { older_than_ts: nextToken }),
+        };
+
+        if (scope === 'latest' || scope.startsWith('filter:')) {
+            options.video_date = formattedDate;
+        }
 
         getEvents(token, scope, options)
             .then(data => {
+                if (data.Items.length === 0 && loadMore) {
+                    if (zeroEntryCount < 2) {
+                        setZeroEntryCount(zeroEntryCount + 1);
+                        const newDate = new Date(date);
+                        newDate.setDate(newDate.getDate() - 1);
+                        setVideoDate(newDate);
+                        loadEvents(true, newDate);
+                    }
+                    return;
+                }
+
+                if (data.Items.length > 0) {
+                    setZeroEntryCount(0);
+                }
+
+                if (data.Items.length < 50 && loadMore) {
+                    const newDate = new Date(date);
+                    newDate.setDate(newDate.getDate() - 1);
+                    setVideoDate(newDate);
+                }
+
                 setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts : null);
                 const newEvents = loadMore ? [...events, ...data.Items] : data.Items;
                 setEvents(newEvents);
 
                 let grouped;
                 if (scope === 'latest') {
-                    // In "latest" view, each event is its own group
                     grouped = newEvents.map(event => [event]);
                 } else {
-                    // For camera or group views, group events by time
                     grouped = groupEvents(newEvents);
                 }
                 setGroupedEvents(grouped);
@@ -94,6 +123,8 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
         setEvents([]);
         setGroupedEvents([]);
         setNextToken(null);
+        setVideoDate(new Date());
+        setZeroEntryCount(0);
         loadEvents();
     }, [scope, token]);
 
