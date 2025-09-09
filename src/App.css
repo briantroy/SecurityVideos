@@ -251,6 +251,10 @@
   border-color: #3498db;
 }
 
+.event-card.seen {
+  opacity: 0.7;
+}
+
 .event-card-thumbnail {
   width: 100px;
   height: 100px;

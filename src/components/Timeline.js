@@ -33,6 +33,7 @@ const groupEvents = (events) => {
 const Timeline = ({ scope, token }) => {
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
+    const [seenGroups, setSeenGroups] = useState([]); // new state
     const [nextToken, setNextToken] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
@@ -95,6 +96,10 @@ const Timeline = ({ scope, token }) => {
     }, [scope, token]);
 
     const handleSelectMedia = (eventGroup) => {
+        const key = eventGroup.map(e => e.object_key).join('-');
+        if (!seenGroups.includes(key)) {
+            setSeenGroups([...seenGroups, key]);
+        }
         const newSelectedMedia = [...eventGroup];
         newSelectedMedia.autoplay = true;
         setSelectedMedia(newSelectedMedia);
@@ -106,14 +111,16 @@ const Timeline = ({ scope, token }) => {
                 {groupedEvents.map((group, index) => {
                     const key = group.map(e => e.object_key).join('-');
                     const isSelected = selectedMedia && key === selectedMedia.map(e => e.object_key).join('-');
+                    const isSeen = seenGroups.includes(key);
+
                     if (groupedEvents.length === index + 1) {
                         return (
                             <div ref={lastEventElementRef} key={key}>
-                                <EventCard event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} />
+                                <EventCard event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />
                             </div>
                         );
                     } else {
-                        return <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} />;
+                        return <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />;
                     }
                 })}
                  {loading && <div className="loading-indicator">Loading...</div>}

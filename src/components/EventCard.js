@@ -1,9 +1,9 @@
 import React from 'react';
 
-const EventCard = ({ event: eventGroup, onSelectMedia, isSelected }) => {
+const EventCard = ({ event: eventGroup, onSelectMedia, isSelected, isSeen }) => {
     const firstEvent = eventGroup[0];
     const eventDate = new Date(firstEvent.event_ts);
-    const cardClassName = `event-card ${isSelected ? 'selected' : ''}`;
+    const cardClassName = `event-card ${isSelected ? 'selected' : ''} ${isSeen && !isSelected ? 'seen' : ''}`;
 
     return (
         <div className={cardClassName} onClick={() => onSelectMedia(eventGroup)}>
