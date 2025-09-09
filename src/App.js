@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback } from 'react';
+import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GoogleOAuthProvider, GoogleLogin, googleLogout } from '@react-oauth/google';
 import Sidebar from './components/Sidebar';
 import Timeline from './components/Timeline';
@@ -15,6 +15,7 @@ function App() {
     const [groups, setGroups] = useState([]);
     const [currentScope, setCurrentScope] = useState('latest');
     const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const mainContentRef = useRef(null);
 
     // Handle successful Google sign-in
     const handleLoginSuccess = (credentialResponse) => {
@@ -98,14 +99,14 @@ function App() {
                     onToggle={toggleSidebar}
                     currentScope={currentScope}
                 />
-                <main className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
+                <main ref={mainContentRef} className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
                     <header className="main-header">
                         <h1>
                             {currentScope.startsWith('filter:') ? `Filter: ${currentScope.substring(7)}` :
                              currentScope === 'latest' ? 'Latest Events' : `Camera: ${currentScope}`}
                         </h1>
                     </header>
-                    <Timeline scope={currentScope} token={userToken} />
+                    <Timeline scope={currentScope} token={userToken} scrollableContainer={mainContentRef} />
                 </main>
             </div>
         </GoogleOAuthProvider>

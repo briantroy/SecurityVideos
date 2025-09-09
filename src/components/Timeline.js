@@ -30,7 +30,7 @@ const groupEvents = (events) => {
 };
 
 
-const Timeline = ({ scope, token }) => {
+const Timeline = ({ scope, token, scrollableContainer }) => {
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
     const [seenGroups, setSeenGroups] = useState([]); // new state
@@ -44,13 +44,15 @@ const Timeline = ({ scope, token }) => {
     const lastEventElementRef = useCallback(node => {
         if (loading) return;
         if (observer.current) observer.current.disconnect();
-        observer.current = new IntersectionObserver(entries => {
-            if (entries[0].isIntersecting && nextToken) {
-                loadEvents(true);
-            }
-        });
-        if (node) observer.current.observe(node);
-    }, [loading, nextToken]);
+        if (scrollableContainer.current) {
+            observer.current = new IntersectionObserver(entries => {
+                if (entries[0].isIntersecting && nextToken) {
+                    loadEvents(true);
+                }
+            }, { root: scrollableContainer.current });
+            if (node) observer.current.observe(node);
+        }
+    }, [loading, nextToken, scrollableContainer]);
 
     const loadEvents = (loadMore = false) => {
         setLoading(true);
@@ -60,7 +62,7 @@ const Timeline = ({ scope, token }) => {
 
         getEvents(token, scope, options)
             .then(data => {
-                setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts.N : null);
+                setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts / 1000 : null);
                 const newEvents = loadMore ? [...events, ...data.Items] : data.Items;
                 setEvents(newEvents);
 
