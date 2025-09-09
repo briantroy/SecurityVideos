@@ -50,6 +50,7 @@ const Timeline = ({ scope, token }) => {
 
     // Effect to load events when the scope (selected camera/filter) changes
     useEffect(() => {
+        setSelectedMedia(null);
         setEvents([]);
         setNextToken(null);
         loadEvents();
