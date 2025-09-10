@@ -10,7 +10,7 @@ const EventCard = ({ event: eventGroup, onSelectMedia, isSelected, isSeen }) => 
             <div className="event-card-thumbnail">
                 {/* Placeholder for thumbnail */}
                 {eventGroup.length > 1 && (
-                    <span className="video-count-badge">{eventGroup.length} videos</span>
+                    <span className="video-count-badge">{eventGroup.length}</span>
                 )}
             </div>
             <div className="event-card-body">

@@ -1,3 +1,28 @@
+/* Dynamic event card sizing for all screens */
+.event-card {
+  min-height: 6vh;
+  max-height: 8vh;
+  height: 7vh;
+  padding: 0.5vh 1vw;
+  font-size: 1.8vh;
+  box-sizing: border-box;
+}
+.event-card-thumbnail {
+  width: 5vh;
+  height: 5vh;
+  font-size: 1.5vh;
+  position: relative;
+  display: flex;
+  align-items: flex-start;
+  justify-content: flex-start;
+  overflow: visible;
+}
+.event-card-body {
+  padding: 0.5vh 1vw;
+}
+.camera-name, .timestamp, .event-type {
+  font-size: 1.3vh;
+}
 @media (min-width: 601px) and (max-width: 1190px) {
   .responsive-panels {
     flex-direction: column;
@@ -512,15 +537,23 @@
 }
 
 .video-count-badge {
-    position: absolute;
-    top: 5px;
-    right: 5px;
-    background-color: rgba(0,0,0,0.7);
-    color: white;
-    padding: 3px 8px;
-    border-radius: 12px;
-    font-size: 0.8rem;
-    font-weight: bold;
+  position: absolute;
+  top: 50%;
+  right: 0;
+  transform: translateY(-50%);
+  z-index: 2;
+  background-color: rgba(0,0,0,0.7);
+  color: white;
+  padding: 0.2em 0.7em;
+  border-radius: 1em;
+  font-size: max(1.2vh, 13px);
+  min-width: 22px;
+  min-height: 22px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: bold;
+  pointer-events: none;
 }
 
 .event-card-body {
