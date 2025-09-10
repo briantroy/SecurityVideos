@@ -33,8 +33,10 @@ const MediaViewer = ({ event: eventGroup, token }) => {
                 )}
             </div>
             <div className="media-info">
-                <h3>{currentEvent.camera_name}</h3>
-                <p>{eventDate.toLocaleString()}</p>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1em' }}>
+                    <span style={{ fontWeight: 'bold' }}>{currentEvent.camera_name}</span>
+                    <span>{eventDate.toLocaleString()}</span>
+                </div>
                 {eventGroup.length > 1 && (
                     <div className="media-navigation">
                         <button onClick={handlePrev}>Previous</button>

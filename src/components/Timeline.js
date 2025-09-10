@@ -40,6 +40,8 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [videoDate, setVideoDate] = useState(new Date());
     const [zeroEntryCount, setZeroEntryCount] = useState(0);
+    // Prevent double API call for same scope/token
+    const lastEffectKey = useRef(null);
 
     const observer = useRef();
 
@@ -119,6 +121,12 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
     };
 
     useEffect(() => {
+        const effectKey = `${scope}:${token}`;
+        if (lastEffectKey.current === effectKey) {
+            // Already ran for this combination
+            return;
+        }
+        lastEffectKey.current = effectKey;
         setSelectedMedia(null);
         setEvents([]);
         setGroupedEvents([]);
