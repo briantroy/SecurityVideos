@@ -30,14 +30,13 @@ const groupEvents = (events) => {
 };
 
 
-const Timeline = ({ scope, token, scrollableContainer }) => {
+const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelectedMedia }) => {
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
     const [seenGroups, setSeenGroups] = useState([]);
     const [nextToken, setNextToken] = useState(null);
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
-    const [selectedMedia, setSelectedMedia] = useState(null);
     const [videoDate, setVideoDate] = useState(new Date());
     const videoDateRef = useRef(videoDate);
     const [zeroEntryCount, setZeroEntryCount] = useState(0);
@@ -206,9 +205,7 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
                 )}
             </div>
 
-            {selectedMedia && (
-                <MediaViewer event={selectedMedia} token={token} />
-            )}
+            {/* MediaViewer is now rendered in App.js */}
         </div>
     );
 };

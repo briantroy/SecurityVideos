@@ -1,7 +1,9 @@
 import React, { useState, useEffect, useCallback, useRef } from 'react';
 import { GoogleOAuthProvider, GoogleLogin, googleLogout } from '@react-oauth/google';
+
 import Sidebar from './components/Sidebar';
 import Timeline from './components/Timeline';
+import MediaViewer from './components/MediaViewer';
 import { getCameraList } from './api';
 import './App.css';
 
@@ -19,6 +21,8 @@ function App() {
     });
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const mainContentRef = useRef(null);
+    // Lift selectedMedia state to App.js
+    const [selectedMedia, setSelectedMedia] = useState(null);
 
     // Handle successful Google sign-in
     const handleLoginSuccess = (credentialResponse) => {
@@ -114,7 +118,20 @@ function App() {
                              currentScope === 'latest' ? 'Latest Events' : `Camera: ${currentScope}`}
                         </h1>
                     </header>
-                    <Timeline scope={currentScope} token={userToken} scrollableContainer={mainContentRef} />
+                    <div className="responsive-panels">
+                        <div className="timeline-panel">
+                            <Timeline 
+                                scope={currentScope} 
+                                token={userToken} 
+                                scrollableContainer={mainContentRef}
+                                selectedMedia={selectedMedia}
+                                setSelectedMedia={setSelectedMedia}
+                            />
+                        </div>
+                        <div className="media-viewer-panel">
+                            <MediaViewer event={selectedMedia} token={userToken} />
+                        </div>
+                    </div>
                 </main>
             </div>
         </GoogleOAuthProvider>
