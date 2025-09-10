@@ -1,3 +1,22 @@
+@media (max-width: 1190px) {
+  .timestamp {
+    font-weight: bold !important;
+  }
+}
+@media (min-width: 1190px) and (max-width: 1690px) {
+  .event-card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.1em;
+  }
+  .camera-name, .timestamp {
+    width: 100%;
+    text-align: left;
+  }
+  .timestamp {
+    font-weight: bold !important;
+  }
+}
 .event-card-header.vertical {
   flex-direction: column !important;
   align-items: flex-start !important;
