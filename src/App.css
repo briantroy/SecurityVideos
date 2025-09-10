@@ -570,18 +570,30 @@
 
 .camera-name {
   font-weight: bold;
-  font-size: clamp(1rem, 2vw, 1.1rem);
+  font-size: clamp(0.7rem, 1vw, 1.1rem);
   color: #333;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .timestamp {
-  font-size: clamp(0.8rem, 1.2vw, 0.95rem);
+  font-size: clamp(0.6rem, 0.9vw, 0.95rem);
   color: #777;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .event-type {
-  font-size: clamp(0.9rem, 1.5vw, 1rem);
+  font-size: clamp(0.6rem, 0.9vw, 1rem);
   color: #555;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .event-card-play-icon {
