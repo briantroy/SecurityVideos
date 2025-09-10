@@ -13,7 +13,10 @@ function App() {
     const [user, setUser] = useState(null);
     const [cameras, setCameras] = useState([]);
     const [groups, setGroups] = useState([]);
-    const [currentScope, setCurrentScope] = useState('latest');
+    // Load last scope from localStorage if available
+    const [currentScope, setCurrentScope] = useState(() => {
+        return localStorage.getItem('lastScope') || 'latest';
+    });
     const [isSidebarOpen, setSidebarOpen] = useState(true);
     const mainContentRef = useRef(null);
 
@@ -60,6 +63,11 @@ function App() {
                 });
         }
     }, [userToken, handleSignOut]);
+
+    // Save scope to localStorage whenever it changes
+    useEffect(() => {
+        localStorage.setItem('lastScope', currentScope);
+    }, [currentScope]);
 
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
