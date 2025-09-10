@@ -39,26 +39,37 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
     const [error, setError] = useState(null);
     const [selectedMedia, setSelectedMedia] = useState(null);
     const [videoDate, setVideoDate] = useState(new Date());
+    const videoDateRef = useRef(videoDate);
     const [zeroEntryCount, setZeroEntryCount] = useState(0);
     // Prevent double API call for same scope/token
     const lastEffectKey = useRef(null);
+    const [noEventsDate, setNoEventsDate] = useState(null);
 
     const observer = useRef();
 
     const lastEventElementRef = useCallback(node => {
-        if (loading) return;
         if (observer.current) observer.current.disconnect();
-        if (scrollableContainer.current) {
+        if (loading) return;
+        if (node && scrollableContainer.current) {
             observer.current = new IntersectionObserver(entries => {
-                if (entries[0].isIntersecting && nextToken) {
-                    loadEvents(true);
+                if (entries[0].isIntersecting && nextToken !== undefined) {
+                    // For group (filter), always use the ref for the next date
+                    if (scope.startsWith('filter:')) {
+                        loadEvents(true, videoDateRef.current);
+                    } else {
+                        loadEvents(true);
+                    }
                 }
             }, { root: scrollableContainer.current });
-            if (node) observer.current.observe(node);
+            observer.current.observe(node);
         }
-    }, [loading, nextToken, scrollableContainer]);
+    }, [loading, nextToken, scrollableContainer, scope]);
 
-    const loadEvents = (loadMore = false, date = videoDate) => {
+    const loadEvents = (loadMore = false, date = videoDate, zeroTries = zeroEntryCount) => {
+        // Always keep the ref in sync
+        if (scope.startsWith('filter:')) {
+            videoDateRef.current = date;
+        }
         setLoading(true);
         setError(null);
 
@@ -74,28 +85,46 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
 
         getEvents(token, scope, options)
             .then(data => {
-                if (data.Items.length === 0 && loadMore) {
-                    if (zeroEntryCount < 2) {
-                        setZeroEntryCount(zeroEntryCount + 1);
-                        const newDate = new Date(date);
-                        newDate.setDate(newDate.getDate() - 1);
-                        setVideoDate(newDate);
-                        loadEvents(true, newDate);
-                    }
+                // Special case: group (filter) and 0 events returned, try up to 3 days
+                if (scope.startsWith('filter:') && data.Items.length === 0 && zeroTries < 2) {
+                    const newDate = new Date(date);
+                    newDate.setDate(newDate.getDate() - 1);
+                    setVideoDate(newDate);
+                    setZeroEntryCount(zeroTries + 1);
+                    loadEvents(false, newDate, zeroTries + 1);
+                    return;
+                }
+                // If 3 tries and still 0 events, show message
+                if (scope.startsWith('filter:') && data.Items.length === 0 && zeroTries >= 2) {
+                    setNoEventsDate(date);
+                    setEvents([]);
+                    setGroupedEvents([]);
+                    setLoading(false);
                     return;
                 }
 
                 if (data.Items.length > 0) {
                     setZeroEntryCount(0);
+                    setNoEventsDate(null);
                 }
 
-                if (data.Items.length < 50 && loadMore) {
+                // For group (filter), always decrement date for next scroll, regardless of how many events were returned (except 0-events special case above)
+                if (scope.startsWith('filter:')) {
+                    // Immediately decrement date for next call
                     const newDate = new Date(date);
                     newDate.setDate(newDate.getDate() - 1);
                     setVideoDate(newDate);
+                    videoDateRef.current = newDate;
+                    setNextToken(null); // next scroll omits older_than_ts
+                } else if (data.Items.length < 50 && loadMore) {
+                    // For non-group, keep old logic
+                    const newDate = new Date(date);
+                    newDate.setDate(newDate.getDate() - 1);
+                    setVideoDate(newDate);
+                    setNextToken(null);
+                } else {
+                    setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts : null);
                 }
-
-                setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts : null);
                 const newEvents = loadMore ? [...events, ...data.Items] : data.Items;
                 setEvents(newEvents);
 
@@ -127,13 +156,16 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
             return;
         }
         lastEffectKey.current = effectKey;
+        const today = new Date();
         setSelectedMedia(null);
         setEvents([]);
         setGroupedEvents([]);
         setNextToken(null);
-        setVideoDate(new Date());
+        setVideoDate(today);
+        videoDateRef.current = today;
         setZeroEntryCount(0);
-        loadEvents();
+        setNoEventsDate(null);
+        loadEvents(false, today, 0);
     }, [scope, token]);
 
     const handleSelectMedia = (eventGroup) => {
@@ -164,11 +196,14 @@ const Timeline = ({ scope, token, scrollableContainer }) => {
                         return <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />;
                     }
                 })}
-                 {loading && <div className="loading-indicator">Loading...</div>}
-                 {error && <div className="error-indicator">{error}</div>}
-                 {!loading && !nextToken && events.length > 0 && (
-                     <div className="timeline-end">End of timeline.</div>
-                 )}
+                {loading && <div className="loading-indicator">Loading...</div>}
+                {error && <div className="error-indicator">{error}</div>}
+                {!loading && noEventsDate && (
+                    <div className="timeline-end">No events in the last 3 days (since {noEventsDate.toLocaleDateString()})</div>
+                )}
+                {!loading && !noEventsDate && !nextToken && events.length > 0 && (
+                    <div className="timeline-end">End of timeline.</div>
+                )}
             </div>
 
             {selectedMedia && (
