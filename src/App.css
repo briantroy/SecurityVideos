@@ -1,3 +1,46 @@
+.event-card-header.vertical {
+  flex-direction: column !important;
+  align-items: flex-start !important;
+  gap: 0.1em;
+}
+@media (min-width: 1190px) and (max-width: 1690px) {
+  .event-card-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.1em;
+  }
+  .camera-name, .timestamp {
+    width: 100%;
+    text-align: left;
+  }
+}
+@media (min-width: 1191px) and (max-width: 1690px) {
+  .responsive-panels {
+    flex-direction: row;
+    height: 100%;
+    min-height: 0;
+    gap: 0 !important;
+  }
+  .timeline-panel {
+    flex: 0 0 40vw;
+    width: 40vw;
+    min-width: 340px;
+    max-width: 40vw;
+    z-index: 2;
+    position: relative;
+    background: #fff;
+  }
+  .media-viewer-panel {
+    flex: 1 1 60vw;
+    width: 60vw;
+    min-width: 0;
+    max-width: 60vw;
+    z-index: 1;
+    position: relative;
+    background: #f4f7f6;
+    box-shadow: -2px 0 8px rgba(0,0,0,0.04);
+  }
+}
 /* Dynamic event card sizing for all screens */
 .event-card {
   min-height: 6vh;
