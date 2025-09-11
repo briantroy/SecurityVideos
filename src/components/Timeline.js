@@ -30,6 +30,7 @@ const groupEvents = (events) => {
 };
 
 
+
 const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelectedMedia }) => {
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
@@ -40,94 +41,98 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
     const [videoDate, setVideoDate] = useState(new Date());
     const videoDateRef = useRef(videoDate);
     const [zeroEntryCount, setZeroEntryCount] = useState(0);
-    // Prevent double API call for same scope/token
-    const lastEffectKey = useRef(null);
     const [noEventsDate, setNoEventsDate] = useState(null);
-
+    const lastEffectKey = useRef(null);
     const observer = useRef();
 
+    // Infinite scroll observer
     const lastEventElementRef = useCallback(node => {
         if (observer.current) observer.current.disconnect();
         if (loading) return;
         if (node && scrollableContainer.current) {
             observer.current = new IntersectionObserver(entries => {
                 if (entries[0].isIntersecting && nextToken !== undefined) {
-                    // For group (filter), always use the ref for the next date
-                    if (scope.startsWith('filter:')) {
-                        loadEvents(true, videoDateRef.current);
-                    } else {
-                        loadEvents(true);
-                    }
+                    loadEvents(true);
                 }
             }, { root: scrollableContainer.current });
             observer.current.observe(node);
         }
     }, [loading, nextToken, scrollableContainer, scope]);
 
-    const loadEvents = (loadMore = false, date = videoDate, zeroTries = zeroEntryCount) => {
-        // Always keep the ref in sync
-        if (scope.startsWith('filter:')) {
-            videoDateRef.current = date;
-        }
+    // Main event loading logic
+    const loadEvents = (loadMore = false, dateArg, zeroTriesArg) => {
         setLoading(true);
         setError(null);
 
-    // Use local date in YYYY-MM-DD format
-    const formattedDate = date.toLocaleDateString('en-CA');
-        const options = {
-            num_results: 50,
-            ...(loadMore && nextToken && { older_than_ts: nextToken }),
-        };
+        let date = dateArg !== undefined ? dateArg : videoDate;
+        let zeroTries = zeroTriesArg !== undefined ? zeroTriesArg : zeroEntryCount;
+        if (scope.startsWith('filter:')) {
+            videoDateRef.current = date;
+        }
 
+        // Always use local date in YYYY-MM-DD
+        const formattedDate = date.toLocaleDateString('en-CA');
+        const options = {
+            num_results: scope.startsWith('filter:') ? 100 : 50,
+        };
+        if (nextToken && loadMore) {
+            options.older_than_ts = nextToken;
+        }
+        // Only use video_date for non-camera
         if (scope === 'latest' || scope.startsWith('filter:')) {
             options.video_date = formattedDate;
         }
 
         getEvents(token, scope, options)
             .then(data => {
-                // Special case: group (filter) and 0 events returned, try up to 3 days
-                if (scope.startsWith('filter:') && data.Items.length === 0 && zeroTries < 2) {
-                    const newDate = new Date(date);
-                    newDate.setDate(newDate.getDate() - 1);
-                    setVideoDate(newDate);
-                    setZeroEntryCount(zeroTries + 1);
-                    loadEvents(false, newDate, zeroTries + 1);
-                    return;
-                }
-                // If 3 tries and still 0 events, show message
-                if (scope.startsWith('filter:') && data.Items.length === 0 && zeroTries >= 2) {
-                    setNoEventsDate(date);
-                    setEvents([]);
-                    setGroupedEvents([]);
-                    setLoading(false);
-                    return;
+                const count = data.Items.length;
+                // 1. Handle 0 results
+                if (count === 0) {
+                    setNextToken(null); // Unset older_than_ts on 0 entry response
+                    if (scope.startsWith('filter:')) {
+                        if (zeroTries >= 2) {
+                            setNoEventsDate(date);
+                            setLoading(false);
+                            return;
+                        } else {
+                            // Try previous day, but do NOT clear events
+                            const newDate = new Date(date);
+                            newDate.setDate(newDate.getDate() - 1);
+                            setVideoDate(newDate);
+                            setZeroEntryCount(zeroTries + 1);
+                            loadEvents(true, newDate, zeroTries + 1);
+                            return;
+                        }
+                    } else {
+                        // Not a group: show no events message
+                        setNoEventsDate(date);
+                        setLoading(false);
+                        return;
+                    }
                 }
 
-                if (data.Items.length > 0) {
-                    setZeroEntryCount(0);
-                    setNoEventsDate(null);
-                }
+                // 2. Handle >0 results
+                setZeroEntryCount(0);
+                setNoEventsDate(null);
 
-                // For group (filter), always decrement date for next scroll, regardless of how many events were returned (except 0-events special case above)
-                if (scope.startsWith('filter:')) {
-                    // Immediately decrement date for next call
-                    const newDate = new Date(date);
-                    newDate.setDate(newDate.getDate() - 1);
-                    setVideoDate(newDate);
-                    videoDateRef.current = newDate;
-                    setNextToken(null); // next scroll omits older_than_ts
-                } else if (data.Items.length < 50 && loadMore) {
-                    // For non-group, keep old logic
-                    const newDate = new Date(date);
-                    newDate.setDate(newDate.getDate() - 1);
-                    setVideoDate(newDate);
-                    setNextToken(null);
+
+                // 3. Handle LastEvaluatedKey for infinite scroll
+                if (data.LastEvaluatedKey && data.LastEvaluatedKey.event_ts) {
+                    setNextToken(data.LastEvaluatedKey.event_ts);
                 } else {
-                    setNextToken(data.LastEvaluatedKey ? data.LastEvaluatedKey.event_ts : null);
+                    setNextToken(null);
+                    // If >0 results and no LastEvaluatedKey, decrement videoDate for next scroll
+                    if (count > 0 && (scope === 'latest' || scope.startsWith('filter:'))) {
+                        const newDate = new Date(date);
+                        newDate.setDate(newDate.getDate() - 1);
+                        setVideoDate(newDate);
+                        videoDateRef.current = newDate;
+                    }
                 }
+
+                // 4. Always append new events
                 const newEvents = loadMore ? [...events, ...data.Items] : data.Items;
                 setEvents(newEvents);
-
                 let grouped;
                 if (scope === 'latest') {
                     grouped = newEvents.map(event => [event]);
@@ -135,7 +140,6 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
                     grouped = groupEvents(newEvents);
                 }
                 setGroupedEvents(grouped);
-
                 if (!loadMore && grouped.length > 0) {
                     setSelectedMedia(grouped[0]);
                 }
@@ -149,12 +153,10 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
             });
     };
 
+    // Initial load and scope/token change
     useEffect(() => {
         const effectKey = `${scope}:${token}`;
-        if (lastEffectKey.current === effectKey) {
-            // Already ran for this combination
-            return;
-        }
+        if (lastEffectKey.current === effectKey) return;
         lastEffectKey.current = effectKey;
         const today = new Date();
         setSelectedMedia(null);

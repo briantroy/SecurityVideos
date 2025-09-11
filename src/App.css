@@ -1,3 +1,7 @@
+#app-container, #root, .main-content {
+  overflow: hidden !important;
+  height: 100% !important;
+}
 @media (max-width: 600px) and (orientation: landscape) {
   .camera-name, .event-type {
     font-size: 1.05rem !important;
