@@ -1,3 +1,41 @@
+/* Timeline pulldown button styles */
+.timeline-pulldown {
+  width: 98%;
+  margin: 0 auto 8px auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 38px;
+  max-height: 4vh;
+  height: 3.6vh;
+  font-size: 1.7vh;
+  font-size: min(max(1.7vh, 15px), 2.2vh);
+  font-weight: bold;
+  background: #f0f0f0;
+  border: none;
+  border-radius: 8px;
+  border-bottom: 1px solid #ccc;
+  box-sizing: border-box;
+  cursor: pointer;
+  transition: background 0.2s;
+  gap: 10px;
+}
+.timeline-pulldown:disabled {
+  opacity: 0.7;
+  cursor: not-allowed;
+}
+.refresh-icon {
+  display: flex;
+  align-items: center;
+  margin-right: 8px;
+  transition: transform 0.3s linear;
+}
+.refresh-icon.spinning {
+  animation: spin 1s linear infinite;
+}
+@keyframes spin {
+  100% { transform: rotate(360deg); }
+}
 html, body {
   height: 100%;
   min-height: 0;

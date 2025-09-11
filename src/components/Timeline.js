@@ -46,6 +46,7 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
     const observer = useRef();
     // Store the first event_ts for each scope for later use
     const [firstEventTsByScope, setFirstEventTsByScope] = useState({});
+    const [refreshing, setRefreshing] = useState(false);
 
     // Infinite scroll observer
     const lastEventElementRef = useCallback(node => {
@@ -192,6 +193,7 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         const formattedDate = today.toLocaleDateString('en-CA');
         const newerThanTs = firstEventTsByScope[scope];
         if (!newerThanTs) return; // nothing to fetch
+        setRefreshing(true);
         const options = {
             num_results: scope.startsWith('filter:') ? 100 : 50,
             newer_than_ts: newerThanTs,
@@ -217,15 +219,24 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
             })
             .catch(err => {
                 console.error('Failed to fetch new events:', err);
-            });
+            })
+            .finally(() => setRefreshing(false));
     };
 
     return (
         <div className="timeline-container">
-            <button className="timeline-pulldown" onClick={handlePullDown} style={{width:'100%',padding:'8px',fontWeight:'bold',background:'#f0f0f0',border:'none',borderBottom:'1px solid #ccc',cursor:'pointer'}}>
-                Pull down to check for new events
-            </button>
             <div className="timeline">
+                {/* Pulldown button above the first event */}
+                <button className="timeline-pulldown" onClick={handlePullDown} disabled={refreshing}>
+                    <span className={`refresh-icon${refreshing ? ' spinning' : ''}`} aria-label="refresh" role="img">
+                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M15.07 4.93A7 7 0 1 0 17 10" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                            <polyline points="17 3 17 8 12 8" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
+                        </svg>
+                    </span>
+                    {refreshing ? 'Refreshing...' : 'Get New Events'}
+                </button>
+                {/* Timeline events */}
                 {groupedEvents.map((group, index) => {
                     const key = group.map(e => e.object_key).join('-');
                     const isSelected = selectedMedia && key === selectedMedia.map(e => e.object_key).join('-');
