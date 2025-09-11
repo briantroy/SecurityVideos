@@ -1,3 +1,41 @@
+html, body {
+  height: 100%;
+  min-height: 0;
+  margin: 0;
+  padding: 0;
+}
+
+#root {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+}
+
+#app-container {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: row;
+}
+
+.main-content {
+  height: 100%;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  flex: 1 1 auto;
+  overflow: hidden;
+}
+
+.responsive-panels {
+  height: 100%;
+  min-height: 0;
+  flex: 1 1 0;
+  display: flex;
+  flex-direction: row;
+  box-sizing: border-box;
+}
 #app-container, #root, .main-content {
   overflow: hidden !important;
   height: 100% !important;
@@ -118,8 +156,10 @@
 @media (min-width: 601px) and (max-width: 1190px) {
   .responsive-panels {
     flex-direction: column;
-    height: 100vh;
+    flex: 1 1 auto;
     min-height: 0;
+    height: 100%;
+    box-sizing: border-box;
   }
   .media-viewer-panel {
     width: 100vw;
@@ -134,33 +174,34 @@
     flex-direction: column;
   }
   .media-viewer {
-    height: 100% !important;
-    max-height: 100% !important;
-    overflow: hidden !important;
-    display: flex !important;
-    flex-direction: column;
-  }
-  .media-container {
+     flex: 1 1 auto;
+     height: 100vh;
+     display: flex;
+     flex-direction: column;
+     min-height: 0;
+     overflow: hidden;
+     transition: margin-left 0.3s ease-in-out;
+     padding: 20px 20px 0 0;
+     background-color: #f4f7f6;
+     box-sizing: border-box;
     flex: 0 0 auto;
     width: 100%;
     aspect-ratio: 16/9;
-    max-height: 60%;
-    overflow: hidden;
-    display: flex;
-    align-items: center;
-    justify-content: center;
+     flex-shrink: 0;
+     display: flex;
+     align-items: center;
+     margin-bottom: 20px;
+     padding-bottom: 10px;
+     border-bottom: 1px solid #e1e1e1;
   }
   .video-embed, .image-embed {
     width: 100% !important;
-    height: 100% !important;
-    object-fit: contain !important;
-    display: block;
-    aspect-ratio: 16/9;
-    max-height: 100%;
-  }
-  .media-info {
-    flex: 1 1 auto;
-    max-height: 40%;
+     flex: 1 1 0;
+     min-height: 0;
+     height: auto;
+     display: flex;
+     flex-direction: row;
+     box-sizing: border-box;
     overflow-y: auto !important;
     padding-left: 10px;
     padding-top: 5px;
@@ -170,17 +211,19 @@
     width: 100vw;
     max-width: 100vw;
     min-width: 0;
-    height: 55vh !important;
-    max-height: 55vh !important;
-    flex: 1 1 55vh;
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
     overflow-y: auto;
   }
 }
 @media (max-width: 600px) and (orientation: landscape) {
   .responsive-panels {
     flex-direction: column;
-    height: 100vh;
+    flex: 1 1 auto;
     min-height: 0;
+    height: 100%;
+    box-sizing: border-box;
   }
   .media-viewer-panel {
     width: 100vw;
@@ -220,10 +263,10 @@
     max-height: 100%;
   }
   .media-info {
-    flex: 1 1 auto;
-    max-height: 40%;
-    overflow-y: auto !important;
-    padding-left: 10px;
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
+    box-sizing: border-box;
     padding-top: 5px;
     border-left: none;
   }
@@ -231,9 +274,9 @@
     width: 100vw;
     max-width: 100vw;
     min-width: 0;
-    height: 50vh !important;
-    max-height: 50vh !important;
-    flex: 1 1 50vh;
+    flex: 1 1 0;
+    min-height: 0;
+    height: auto;
     overflow-y: auto;
   }
 }
@@ -298,7 +341,9 @@
   padding-left: 5px;
   width: 100%;
   height: 100%;
+  max-height: 100%;
   min-height: 0;
+  box-sizing: border-box;
 }
 
 .media-viewer-panel {
@@ -317,17 +362,19 @@
   min-width: 0;
   max-width: none;
   display: flex;
-  height: 100%;
   min-height: 0;
+  height: auto;
   overflow-y: auto;
   flex-direction: column;
 }
 
 @media (max-width: 1190px) {
   .responsive-panels {
-    height: 100%;
-    min-height: 0;
     flex-direction: column;
+    flex: 1 1 auto;
+    min-height: 0;
+    height: 100%;
+    box-sizing: border-box;
   }
   .media-viewer-panel {
     order: 1;
@@ -347,25 +394,30 @@
     width: 100%;
     min-width: 0;
     max-width: 100vw;
-    height: 100%;
+    flex: 1 1 0;
     min-height: 0;
+    height: auto;
     overflow-y: auto;
     z-index: 1;
   }
 }
 /* General App Layout */
+
 .app-container {
   display: flex;
+  flex-direction: row;
   height: 100vh;
   overflow: hidden !important;
 }
 
 .main-content {
-  flex-grow: 1;
+  flex: 1 1 auto;
+  height: 100vh;
   overflow-y: auto;
   transition: margin-left 0.3s ease-in-out;
-  padding: 20px 20px 20px 0;
+  padding: 20px 20px 0 0;
   background-color: #f4f7f6;
+  box-sizing: border-box;
 }
 
 .main-header {
@@ -435,7 +487,7 @@
 
 .sidebar-toggle {
   background: #3498db;
-  color: white;
+    /* height: 100vh; */ /* Removed height to allow for proper flex settings */
   border: none;
   border-radius: 50%;
   width: 35px;
