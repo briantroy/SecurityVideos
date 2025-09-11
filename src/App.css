@@ -155,15 +155,22 @@ html, body {
     position: relative;
     background: #fff;
   }
+  /* Consolidated Media Styles */
+
+  /* --- CONSOLIDATED MEDIA VIEWER PANEL LAYOUT --- */
   .media-viewer-panel {
-    flex: 1 1 60vw;
-    width: 60vw;
+    display: flex;
+    flex-direction: column;
+    width: 100%;
+    max-width: 100vw;
     min-width: 0;
-    max-width: 60vw;
-    z-index: 1;
-    position: relative;
     background: #f4f7f6;
     box-shadow: -2px 0 8px rgba(0,0,0,0.04);
+    position: relative;
+    z-index: 1;
+    max-height: 45vh;
+    height: auto;
+    overflow: visible;
   }
 }
 /* Dynamic event card sizing for all screens */
@@ -211,26 +218,30 @@ html, body {
     display: flex !important;
     flex-direction: column;
   }
+  /* --- MEDIA VIEWER FLEX CONTAINMENT FIX --- */
   .media-viewer {
-     flex: 1 1 auto;
-     height: 100vh;
-     display: flex;
-     flex-direction: column;
-     min-height: 0;
-     overflow: hidden;
-     transition: margin-left 0.3s ease-in-out;
-     padding: 20px 20px 0 0;
-     background-color: #f4f7f6;
-     box-sizing: border-box;
-    flex: 0 0 auto;
+    display: flex;
+    flex-direction: column;
+    height: 100%;
+    min-height: 0;
     width: 100%;
-    aspect-ratio: 16/9;
-     flex-shrink: 0;
-     display: flex;
-     align-items: center;
-     margin-bottom: 20px;
-     padding-bottom: 10px;
-     border-bottom: 1px solid #e1e1e1;
+    background: #f4f7f6;
+    box-sizing: border-box;
+    overflow: hidden;
+  }
+
+  .media-info {
+    flex: 0 0 auto;
+    min-height: 0;
+    z-index: 2;
+  }
+
+  .media-container {
+    flex: 1 1 0;
+    min-height: 0;
+    max-height: 100%;
+    overflow: hidden;
+    z-index: 1;
   }
   .video-embed, .image-embed {
     width: 100% !important;
@@ -282,6 +293,7 @@ html, body {
     display: flex !important;
     flex-direction: column;
   }
+  /* --- CONSOLIDATED MEDIA CONTAINER --- */
   .media-container {
     flex: 0 0 auto;
     width: 100%;
@@ -291,6 +303,8 @@ html, body {
     display: flex;
     align-items: center;
     justify-content: center;
+    min-width: 0;
+    min-height: 0;
   }
   .video-embed, .image-embed {
     width: 100% !important;
@@ -300,14 +314,34 @@ html, body {
     aspect-ratio: 16/9;
     max-height: 100%;
   }
+  /* --- CONSOLIDATED MEDIA INFO --- */
   .media-info {
-    flex: 1 1 0;
-    min-height: 0;
-    height: auto;
-    box-sizing: border-box;
-    padding-top: 5px;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    padding: 10px 20px 10px 20px;
     border-left: none;
+    border-bottom: 1px solid #e1e1e1;
+    overflow-y: auto;
+    box-sizing: border-box;
+    background: #fff;
+    z-index: 2;
   }
+@media (max-width: 600px) and (orientation: landscape) {
+  .media-viewer-panel {
+    max-height: 50vh !important;
+    height: auto !important;
+    overflow-y: visible !important;
+  }
+  .media-info {
+    padding: 8px 10px 8px 10px;
+    font-size: 0.95rem;
+  }
+  .media-container {
+    max-height: 28vh !important;
+    height: auto !important;
+  }
+}
   .timeline-panel {
     width: 100vw;
     max-width: 100vw;
@@ -635,33 +669,61 @@ html, body {
     flex: 1;
 }
 
+/* --- CONSOLIDATED MEDIA VIEWER FLEX CONTAINMENT --- */
 .media-viewer {
-    flex: 2;
-    position: sticky;
-    top: 20px; /* Stick to the top with some padding */
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  background: #f4f7f6;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
 .media-container {
-  flex: 3;
+  flex: 1 1 0;
+  min-height: 0;
+  max-height: 100%;
+  overflow: hidden;
   display: flex;
   align-items: center;
   justify-content: center;
   width: 100%;
+  min-width: 0;
+  aspect-ratio: 16/9;
+  position: relative;
+  background: #111;
 }
 
 .media-info {
-  flex: 1;
-  padding-left: 20px;
-  padding-top: 10px;
-  border-left: 1px solid #e1e1e1;
+  flex: 0 0 auto;
+  min-height: 0;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
+  padding: 10px 20px 10px 20px;
+  border-left: none;
+  border-bottom: 1px solid #e1e1e1;
   overflow-y: auto;
+  box-sizing: border-box;
+  background: #fff;
+  z-index: 2;
 }
 
 .video-embed, .image-embed {
   max-width: 100%;
   max-height: 100%;
-  display: block;
+  width: 100%;
+  height: 100%;
   object-fit: contain;
+  display: block;
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  margin: auto;
 }
 
 .media-labels ul {

@@ -25,6 +25,19 @@ const MediaViewer = ({ event: eventGroup, token }) => {
 
     return (
         <div className="media-viewer">
+            <div className="media-info">
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1em' }}>
+                    <span style={{ fontWeight: 'bold' }}>{currentEvent.camera_name}</span>
+                    <span>{eventDate.toLocaleString()}</span>
+                </div>
+                {eventGroup.length > 1 && (
+                    <div className="media-navigation">
+                        <button onClick={handlePrev}>Previous</button>
+                        <span>{currentIndex + 1} of {eventGroup.length}</span>
+                        <button onClick={handleNext}>Next</button>
+                    </div>
+                )}
+            </div>
             <div className="media-container">
                 {currentEvent.video_name ? (
                     <video 
@@ -38,19 +51,6 @@ const MediaViewer = ({ event: eventGroup, token }) => {
                     />
                 ) : (
                     <img src={currentEvent.uri} alt={`Event from ${currentEvent.camera_name}`} className="image-embed" />
-                )}
-            </div>
-            <div className="media-info">
-                <div style={{ display: 'flex', alignItems: 'center', gap: '1em' }}>
-                    <span style={{ fontWeight: 'bold' }}>{currentEvent.camera_name}</span>
-                    <span>{eventDate.toLocaleString()}</span>
-                </div>
-                {eventGroup.length > 1 && (
-                    <div className="media-navigation">
-                        <button onClick={handlePrev}>Previous</button>
-                        <span>{currentIndex + 1} of {eventGroup.length}</span>
-                        <button onClick={handleNext}>Next</button>
-                    </div>
                 )}
             </div>
         </div>
