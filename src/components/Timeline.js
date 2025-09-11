@@ -204,17 +204,19 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         getEvents(token, scope, options)
             .then(data => {
                 if (data.Items && data.Items.length > 0) {
-                    // Prepend new events to the timeline
-                    setEvents(prev => [...data.Items, ...prev]);
+                    // Invert the items array so newest is last
+                    const invertedItems = [...data.Items].reverse();
+                    // Save event_ts of the first event in the inverted array
+                    setFirstEventTsByScope(prev => ({ ...prev, [scope]: invertedItems[0].event_ts }));
+                    // Prepend new events to the timeline in correct order
+                    setEvents(prev => [...invertedItems, ...prev]);
                     let grouped;
                     if (scope === 'latest') {
-                        grouped = [...data.Items.map(event => [event]), ...groupedEvents];
+                        grouped = [...invertedItems.map(event => [event]), ...groupedEvents];
                     } else {
-                        grouped = [...groupEvents(data.Items), ...groupedEvents];
+                        grouped = [...groupEvents(invertedItems), ...groupedEvents];
                     }
                     setGroupedEvents(grouped);
-                    // Update firstEventTsByScope to the event_ts of the first entry in the new set
-                    setFirstEventTsByScope(prev => ({ ...prev, [scope]: data.Items[0].event_ts }));
                 }
             })
             .catch(err => {
@@ -229,10 +231,7 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
                 {/* Pulldown button above the first event */}
                 <button className="timeline-pulldown" onClick={handlePullDown} disabled={refreshing}>
                     <span className={`refresh-icon${refreshing ? ' spinning' : ''}`} aria-label="refresh" role="img">
-                        <svg width="20" height="20" viewBox="0 0 20 20" fill="none" xmlns="http://www.w3.org/2000/svg">
-                            <path d="M15.07 4.93A7 7 0 1 0 17 10" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                            <polyline points="17 3 17 8 12 8" stroke="#333" strokeWidth="2" fill="none" strokeLinecap="round" strokeLinejoin="round"/>
-                        </svg>
+                        <img src="/images/refresh-icon.png" alt="refresh" width="20" height="20" style={{display:'block'}} />
                     </span>
                     {refreshing ? 'Refreshing...' : 'Get New Events'}
                 </button>
