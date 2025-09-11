@@ -27,7 +27,15 @@ const MediaViewer = ({ event: eventGroup, token }) => {
         <div className="media-viewer">
             <div className="media-container">
                 {currentEvent.video_name ? (
-                    <video src={currentEvent.uri} controls preload="auto" autoPlay={eventGroup.autoplay} className="video-embed" />
+                    <video 
+                        src={currentEvent.uri}
+                        controls
+                        preload="auto"
+                        autoPlay={eventGroup.autoplay}
+                        className="video-embed"
+                        playsInline
+                        webkit-playsinline="true"
+                    />
                 ) : (
                     <img src={currentEvent.uri} alt={`Event from ${currentEvent.camera_name}`} className="image-embed" />
                 )}
