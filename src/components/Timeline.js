@@ -44,6 +44,8 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
     const [noEventsDate, setNoEventsDate] = useState(null);
     const lastEffectKey = useRef(null);
     const observer = useRef();
+    // Store the first event_ts for each scope for later use
+    const [firstEventTsByScope, setFirstEventTsByScope] = useState({});
 
     // Infinite scroll observer
     const lastEventElementRef = useCallback(node => {
@@ -140,6 +142,10 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
                     grouped = groupEvents(newEvents);
                 }
                 setGroupedEvents(grouped);
+                // On first load, save the event_ts of the first event for this scope
+                if (!loadMore && newEvents.length > 0) {
+                    setFirstEventTsByScope(prev => ({ ...prev, [scope]: newEvents[0].event_ts }));
+                }
                 if (!loadMore && grouped.length > 0) {
                     setSelectedMedia(grouped[0]);
                 }
@@ -180,15 +186,52 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         setSelectedMedia(newSelectedMedia);
     };
 
+    // Pull-to-refresh handler
+    const handlePullDown = () => {
+        const today = new Date();
+        const formattedDate = today.toLocaleDateString('en-CA');
+        const newerThanTs = firstEventTsByScope[scope];
+        if (!newerThanTs) return; // nothing to fetch
+        const options = {
+            num_results: scope.startsWith('filter:') ? 100 : 50,
+            newer_than_ts: newerThanTs,
+        };
+        if (scope === 'latest' || scope.startsWith('filter:')) {
+            options.video_date = formattedDate;
+        }
+        getEvents(token, scope, options)
+            .then(data => {
+                if (data.Items && data.Items.length > 0) {
+                    // Prepend new events to the timeline
+                    setEvents(prev => [...data.Items, ...prev]);
+                    let grouped;
+                    if (scope === 'latest') {
+                        grouped = [...data.Items.map(event => [event]), ...groupedEvents];
+                    } else {
+                        grouped = [...groupEvents(data.Items), ...groupedEvents];
+                    }
+                    setGroupedEvents(grouped);
+                    // Update firstEventTsByScope to the event_ts of the first entry in the new set
+                    setFirstEventTsByScope(prev => ({ ...prev, [scope]: data.Items[0].event_ts }));
+                }
+            })
+            .catch(err => {
+                console.error('Failed to fetch new events:', err);
+            });
+    };
+
     return (
         <div className="timeline-container">
+            <button className="timeline-pulldown" onClick={handlePullDown} style={{width:'100%',padding:'8px',fontWeight:'bold',background:'#f0f0f0',border:'none',borderBottom:'1px solid #ccc',cursor:'pointer'}}>
+                Pull down to check for new events
+            </button>
             <div className="timeline">
                 {groupedEvents.map((group, index) => {
                     const key = group.map(e => e.object_key).join('-');
                     const isSelected = selectedMedia && key === selectedMedia.map(e => e.object_key).join('-');
                     const isSeen = seenGroups.includes(key);
-
-                    if (groupedEvents.length === index + 1) {
+                    // Always keep the infinite scroll trigger on the last card
+                    if (index === groupedEvents.length - 1) {
                         return (
                             <div ref={lastEventElementRef} key={key}>
                                 <EventCard event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />
