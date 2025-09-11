@@ -8,7 +8,16 @@ const EventCard = ({ event: eventGroup, onSelectMedia, isSelected, isSeen }) => 
     return (
         <div className={cardClassName} onClick={() => onSelectMedia(eventGroup)}>
             <div className="event-card-thumbnail">
-                {/* Placeholder for thumbnail */}
+                {firstEvent.thumbnail_uri ? (
+                    <img
+                        src={firstEvent.thumbnail_uri}
+                        alt="Event thumbnail"
+                        className="thumbnail-image"
+                        style={{ width: '100%', height: '100%', objectFit: 'cover' }}
+                    />
+                ) : (
+                    <span className="no-thumbnail">No Thumbnail</span>
+                )}
                 {eventGroup.length > 1 && (
                     <span className="video-count-badge">{eventGroup.length}</span>
                 )}

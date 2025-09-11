@@ -72,7 +72,8 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         setLoading(true);
         setError(null);
 
-        const formattedDate = date.toISOString().split('T')[0];
+    // Use local date in YYYY-MM-DD format
+    const formattedDate = date.toLocaleDateString('en-CA');
         const options = {
             num_results: 50,
             ...(loadMore && nextToken && { older_than_ts: nextToken }),
