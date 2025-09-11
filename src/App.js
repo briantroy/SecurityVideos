@@ -10,6 +10,7 @@ import './App.css';
 const GOOGLE_CLIENT_ID = "522648161569-735fsdpk8vf40tl854ktv0kg9629hn8d.apps.googleusercontent.com";
 const GOOGLE_DOMAIN_ALLOWED = "brianandkelly.ws";
 
+
 function App() {
     const [userToken, setUserToken] = useState(null);
     const [user, setUser] = useState(null);
@@ -23,6 +24,14 @@ function App() {
     const mainContentRef = useRef(null);
     // Lift selectedMedia state to App.js
     const [selectedMedia, setSelectedMedia] = useState(null);
+
+    // Auto-close sidebar on iPhone screen sizes
+    useEffect(() => {
+        const isIPhone = /iPhone/.test(navigator.userAgent) && window.innerWidth <= 600;
+        if (isIPhone) {
+            setSidebarOpen(false);
+        }
+    }, []);
 
     // Handle successful Google sign-in
     const handleLoginSuccess = (credentialResponse) => {
