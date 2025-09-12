@@ -58,10 +58,14 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         if (loadingRef.current) return; // block if already loading
         if (node && scrollableContainer.current) {
             observer.current = new IntersectionObserver(entries => {
+                const isGroup = scope.startsWith('filter:');
                 if (
                     entries[0].isIntersecting &&
                     !loadingRef.current &&
-                    nextToken !== undefined && nextToken !== null
+                    (
+                        (nextToken !== undefined && nextToken !== null) ||
+                        (isGroup && nextToken === null) // allow date paging for group views
+                    )
                 ) {
                     loadEvents(true, undefined, undefined, viewKeyRef.current);
                 }
