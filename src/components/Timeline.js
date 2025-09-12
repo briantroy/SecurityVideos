@@ -20,12 +20,14 @@ const groupEvents = (events) => {
         if (timeDifference <= 60000) {
             currentGroup.push(currentEvent);
         } else {
-            groupedEvents.push(currentGroup);
+            // Sort the group by event_ts ascending before pushing
+            groupedEvents.push([...currentGroup].sort((a, b) => a.event_ts - b.event_ts));
             currentGroup = [currentEvent];
         }
     }
 
-    groupedEvents.push(currentGroup);
+    // Sort the last group as well
+    groupedEvents.push([...currentGroup].sort((a, b) => a.event_ts - b.event_ts));
     return groupedEvents;
 };
 
