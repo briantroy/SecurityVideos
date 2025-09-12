@@ -93,6 +93,14 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
                 const count = data.Items.length;
                 // 1. Handle 0 results
                 if (count === 0) {
+                    // If there is a LastEvaluatedKey, try previous day (decrement videoDate)
+                    if (data.LastEvaluatedKey && data.LastEvaluatedKey.event_ts) {
+                        const newDate = new Date(date);
+                        newDate.setDate(newDate.getDate() - 1);
+                        setVideoDate(newDate);
+                        loadEvents(true, newDate, zeroTries); // keep zeroTries the same
+                        return;
+                    }
                     setNextToken(null); // Unset older_than_ts on 0 entry response
                     if (scope.startsWith('filter:')) {
                         if (zeroTries >= 2) {
@@ -169,8 +177,8 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         lastEffectKey.current = effectKey;
         const today = new Date();
         setSelectedMedia(null);
-        setEvents([]);
-        setGroupedEvents([]);
+        setEvents([]); // Clear events immediately
+        setGroupedEvents([]); // Clear grouped events immediately
         setNextToken(null);
         setVideoDate(today);
         videoDateRef.current = today;
