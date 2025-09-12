@@ -288,7 +288,19 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
                         return <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />;
                     }
                 })}
-                {loading && <div className="loading-indicator">Loading...</div>}
+                {loading && (
+                    <div className="loading-indicator" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px' }}>
+                        <span className="refresh-icon spinning">
+                            <img
+                                src="/images/refresh-icon.png"
+                                alt="Loading..."
+                                width={32}
+                                height={32}
+                                style={{ display: 'block' }}
+                            />
+                        </span>
+                    </div>
+                )}
                 {error && <div className="error-indicator">{error}</div>}
                 {!loading && noEventsDate && (
                     <div className="timeline-end">No events in the last 3 days (since {noEventsDate.toLocaleDateString()})</div>
