@@ -1,12 +1,42 @@
+import React, { useState, useEffect, useRef } from 'react';
 
-import React, { useState, useEffect } from 'react';
+const VOLUME_KEY = 'mediaViewerVolume';
+const MUTE_KEY = 'mediaViewerMuted';
 
 const MediaViewer = ({ event: eventGroup, token }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
+    const videoRef = useRef(null);
+    // Local state for UI sync
+    const [volume, setVolume] = useState(() => {
+        const stored = localStorage.getItem(VOLUME_KEY);
+        return stored !== null ? parseFloat(stored) : 1;
+    });
+    const [muted, setMuted] = useState(() => {
+        const stored = localStorage.getItem(MUTE_KEY);
+        return stored === 'true';
+    });
 
     useEffect(() => {
         setCurrentIndex(0);
     }, [eventGroup]);
+
+    // Apply saved volume/mute to video when it loads
+    useEffect(() => {
+        const video = videoRef.current;
+        if (video) {
+            video.volume = volume;
+            video.muted = muted;
+        }
+    }, [currentIndex, eventGroup, volume, muted]);
+
+    // Save volume/mute changes to localStorage
+    const handleVolumeChange = (e) => {
+        const video = e.target;
+        setVolume(video.volume);
+        setMuted(video.muted);
+        localStorage.setItem(VOLUME_KEY, video.volume);
+        localStorage.setItem(MUTE_KEY, video.muted);
+    };
 
     if (!eventGroup || eventGroup.length === 0) {
         return null;
@@ -41,6 +71,7 @@ const MediaViewer = ({ event: eventGroup, token }) => {
             <div className="media-container">
                 {currentEvent.video_name ? (
                     <video 
+                        ref={videoRef}
                         src={currentEvent.uri}
                         controls
                         preload="auto"
@@ -48,6 +79,7 @@ const MediaViewer = ({ event: eventGroup, token }) => {
                         className="video-embed"
                         playsInline
                         webkit-playsinline="true"
+                        onVolumeChange={handleVolumeChange}
                     />
                 ) : (
                     <img src={currentEvent.uri} alt={`Event from ${currentEvent.camera_name}`} className="image-embed" />
