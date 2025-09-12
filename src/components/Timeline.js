@@ -293,9 +293,7 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
                 {!loading && noEventsDate && (
                     <div className="timeline-end">No events in the last 3 days (since {noEventsDate.toLocaleDateString()})</div>
                 )}
-                {!loading && !noEventsDate && !nextToken && events.length > 0 && (
-                    <div className="timeline-end">End of timeline.</div>
-                )}
+                {/* Removed End of timeline text */}
             </div>
 
             {/* MediaViewer is now rendered in App.js */}
