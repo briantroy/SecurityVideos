@@ -41,7 +41,7 @@ function App() {
             const res = await fetch('https://api.security-videos.brianandkelly.ws/auth/google', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ credential: credentialResponse.credential }),
+                body: JSON.stringify({ id_token: credentialResponse.credential }),
                 credentials: 'include', // allow cookie to be set cross-origin
             });
             if (!res.ok) throw new Error('Failed to authenticate with backend');
