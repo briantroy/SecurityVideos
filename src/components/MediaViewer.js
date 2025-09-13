@@ -38,11 +38,14 @@ const MediaViewer = ({ event: eventGroup, token }) => {
         localStorage.setItem(MUTE_KEY, video.muted);
     };
 
-    if (!eventGroup || eventGroup.length === 0) {
+    if (!eventGroup || !Array.isArray(eventGroup) || eventGroup.length === 0) {
         return null;
     }
 
     const currentEvent = eventGroup[currentIndex];
+    if (!currentEvent) {
+        return null;
+    }
     const eventDate = new Date(currentEvent.event_ts);
 
     const handleNext = () => {
