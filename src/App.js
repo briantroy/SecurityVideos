@@ -12,7 +12,8 @@ const GOOGLE_DOMAIN_ALLOWED = "brianandkelly.ws";
 
 
 function App() {
-    const [userToken, setUserToken] = useState(null);
+    // JWT token is not stored in JS, but we track login state
+    const [userToken, setUserToken] = useState(null); // Used only for UI state, not for API calls
     const [user, setUser] = useState(null);
     const [cameras, setCameras] = useState([]);
     const [groups, setGroups] = useState([]);
@@ -34,15 +35,27 @@ function App() {
     }, []);
 
     // Handle successful Google sign-in
-    const handleLoginSuccess = (credentialResponse) => {
-        const token = credentialResponse.credential;
-        const payload = JSON.parse(atob(token.split('.')[1]));
-        setUserToken(token);
-        setUser({
-            name: payload.name,
-            email: payload.email,
-            picture: payload.picture,
-        });
+    const handleLoginSuccess = async (credentialResponse) => {
+        // Send Google credential to backend to set httpOnly JWT cookie
+        try {
+            const res = await fetch('https://api.security-videos.brianandkelly.ws/auth/google', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ credential: credentialResponse.credential }),
+                credentials: 'include', // allow cookie to be set cross-origin
+            });
+            if (!res.ok) throw new Error('Failed to authenticate with backend');
+            // Optionally, get user info from backend response
+            const data = await res.json();
+            setUser({
+                name: data.name,
+                email: data.email,
+                picture: data.picture,
+            });
+            setUserToken('jwt-set'); // Just to trigger UI state
+        } catch (err) {
+            console.error('Login failed:', err);
+        }
     };
 
     // Handle Google sign-in failure
@@ -61,8 +74,9 @@ function App() {
 
     // Fetch camera and group lists after successful login
     useEffect(() => {
+        // Always call API without explicit token; backend reads JWT from httpOnly cookie
         if (userToken) {
-            getCameraList(userToken)
+            getCameraList()
                 .then(data => {
                     setCameras(data.cameras || []);
                     setGroups(Object.keys(data.filters || {}));
@@ -85,6 +99,29 @@ function App() {
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
     };
+
+    // On mount, check if JWT is present by pinging a protected endpoint
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await fetch('https://api.security-videos.brianandkelly.ws/cameras', { credentials: 'include' });
+                if (res.ok) {
+                    setUserToken('jwt-set');
+                    // Optionally, get user info from backend
+                    const data = await res.json();
+                    setUser({
+                        name: data.name,
+                        email: data.email,
+                        picture: data.picture,
+                    });
+                } else {
+                    setUserToken(null);
+                }
+            } catch {
+                setUserToken(null);
+            }
+        })();
+    }, []);
 
     if (!userToken) {
         return (
@@ -131,14 +168,13 @@ function App() {
                         <div className="timeline-panel">
                             <Timeline 
                                 scope={currentScope} 
-                                token={userToken} 
                                 scrollableContainer={mainContentRef}
                                 selectedMedia={selectedMedia}
                                 setSelectedMedia={setSelectedMedia}
                             />
                         </div>
                         <div className="media-viewer-panel">
-                            <MediaViewer event={selectedMedia} token={userToken} />
+                            <MediaViewer event={selectedMedia} />
                         </div>
                     </div>
                 </main>

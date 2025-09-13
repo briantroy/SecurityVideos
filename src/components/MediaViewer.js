@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 const VOLUME_KEY = 'mediaViewerVolume';
 const MUTE_KEY = 'mediaViewerMuted';
 
-const MediaViewer = ({ event: eventGroup, token }) => {
+const MediaViewer = ({ event: eventGroup }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const videoRef = useRef(null);
     // Local state for UI sync

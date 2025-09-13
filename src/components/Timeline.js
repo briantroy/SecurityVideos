@@ -33,7 +33,7 @@ const groupEvents = (events) => {
 
 
 
-const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelectedMedia }) => {
+const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia }) => {
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
     const [seenGroups, setSeenGroups] = useState([]);
@@ -74,9 +74,9 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         }
     }, [nextToken, scrollableContainer, scope]);
 
-    // Initial load and scope/token change
+    // Initial load and scope change
     useEffect(() => {
-        const viewKey = `${scope}:${token}`;
+        const viewKey = `${scope}`;
         viewKeyRef.current = viewKey;
         setSelectedMedia(null);
         setEvents([]);
@@ -87,11 +87,11 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         setZeroEntryCount(0);
         setNoEventsDate(null);
         loadEvents(false, new Date(), 0, viewKey);
-    }, [scope, token]);
+    }, [scope]);
 
     // Main event loading logic
     const loadEvents = (loadMore = false, dateArg, zeroTriesArg, viewKeyArg) => {
-        const viewKey = viewKeyArg || `${scope}:${token}`;
+        const viewKey = viewKeyArg || `${scope}`;
         if (loadingRef.current) return; // block re-entry
         loadingRef.current = true;
         setLoading(true);
@@ -115,7 +115,7 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
             options.video_date = formattedDate;
         }
 
-        getEvents(token, scope, options)
+    getEvents(scope, options)
             .then(data => {
                 if (viewKeyRef.current !== viewKey) {
                     loadingRef.current = false;
@@ -242,7 +242,7 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         if (scope === 'latest' || scope.startsWith('filter:')) {
             options.video_date = formattedDate;
         }
-        getEvents(token, scope, options)
+    getEvents(scope, options)
             .then(data => {
                 if (data.Items && data.Items.length > 0) {
                     // Invert the items array so newest is last
