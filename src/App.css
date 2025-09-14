@@ -760,11 +760,16 @@ html, body {
 }
 
 .event-card.selected {
-  border-color: #3498db;
+  border-color: #2c3e50;
+  border-width: 4px;
 }
 
 .event-card.seen {
-  opacity: 0.7;
+  opacity: 1;
+  border: 3px solid #2980ef;
+  background: linear-gradient(90deg, #eaf3ff 60%, #d0e6ff 100%);
+  box-shadow: 0 2px 12px 0 rgba(41, 128, 239, 0.10);
+  filter: none;
 }
 
 .event-card-thumbnail {
