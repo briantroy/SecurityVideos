@@ -51,17 +51,23 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
     const [refreshing, setRefreshing] = useState(false);
     const viewKeyRef = useRef('');
     const loadingRef = useRef(false); // <--- add loadingRef
+    const [datePaging, setDatePaging] = useState(false); // Prevent duplicate date paging
+    const [blockInfiniteScroll, setBlockInfiniteScroll] = useState(false); // Bulletproof observer block
 
     // Infinite scroll observer
     const lastEventElementRef = useCallback(node => {
         if (observer.current) observer.current.disconnect();
         if (loadingRef.current) return; // block if already loading
+        if (datePaging) return; // block if date paging in progress
+        if (blockInfiniteScroll) return; // block if infinite scroll is blocked
         if (node && scrollableContainer.current) {
             observer.current = new IntersectionObserver(entries => {
                 const isGroup = scope.startsWith('filter:');
                 if (
                     entries[0].isIntersecting &&
                     !loadingRef.current &&
+                    !datePaging &&
+                    !blockInfiniteScroll &&
                     (
                         (nextToken !== undefined && nextToken !== null) ||
                         (isGroup && nextToken === null) // allow date paging for group views
@@ -72,7 +78,7 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
             }, { root: scrollableContainer.current });
             observer.current.observe(node);
         }
-    }, [nextToken, scrollableContainer, scope]);
+    }, [nextToken, scrollableContainer, scope, datePaging, blockInfiniteScroll]);
 
     // Initial load and scope/token change
     useEffect(() => {
@@ -90,7 +96,8 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
     }, [scope, token]);
 
     // Main event loading logic
-    const loadEvents = (loadMore = false, dateArg, zeroTriesArg, viewKeyArg) => {
+    // Add forceClearToken argument to control older_than_ts
+    const loadEvents = (loadMore = false, dateArg, zeroTriesArg, viewKeyArg, forceClearToken = false) => {
         const viewKey = viewKeyArg || `${scope}:${token}`;
         if (loadingRef.current) return; // block re-entry
         loadingRef.current = true;
@@ -108,7 +115,8 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
         const options = {
             num_results: scope.startsWith('filter:') ? 100 : 50,
         };
-        if (nextToken && loadMore) {
+        // Only include older_than_ts if not forceClearToken
+        if (nextToken && loadMore && !forceClearToken) {
             options.older_than_ts = nextToken;
         }
         if (scope === 'latest' || scope.startsWith('filter:')) {
@@ -129,32 +137,24 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
                         setEvents([]);
                         setGroupedEvents([]);
                     }
-                    if (scope.startsWith('filter:') && data.LastEvaluatedKey && data.LastEvaluatedKey.event_ts) {
-                        // For groups, recursively fetch previous days and accumulate events
+                    if (scope.startsWith('filter:')) {
+                        // Always ignore LastEvaluatedKey and clear older_than_ts when 0 results for group view
                         const newDate = new Date(date);
                         newDate.setDate(newDate.getDate() - 1);
                         setVideoDate(newDate);
                         setNextToken(null); // clear older_than_ts for next request
                         loadingRef.current = false;
-                        // Always use loadMore=true for subsequent calls to accumulate
-                        loadEvents(true, newDate, zeroTries, viewKey);
-                        return;
-                    }
-                    setNextToken(null);
-                    if (scope.startsWith('filter:')) {
                         if (zeroTries >= 2) {
                             setNoEventsDate(date);
                             setLoading(false);
                             return;
                         } else {
-                            const newDate = new Date(date);
-                            newDate.setDate(newDate.getDate() - 1);
-                            setVideoDate(newDate);
                             setZeroEntryCount(zeroTries + 1);
-                            loadEvents(true, newDate, zeroTries + 1, viewKey);
+                            // Do NOT recursively call loadEvents here. Let the observer trigger the next call for the new date.
                             return;
                         }
                     } else {
+                        setNextToken(null);
                         setNoEventsDate(date);
                         setLoading(false);
                         return;
