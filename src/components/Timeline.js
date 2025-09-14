@@ -138,20 +138,27 @@ const Timeline = ({ scope, token, scrollableContainer, selectedMedia, setSelecte
                         setGroupedEvents([]);
                     }
                     if (scope.startsWith('filter:')) {
-                        // Always ignore LastEvaluatedKey and clear older_than_ts when 0 results for group view
-                        const newDate = new Date(date);
-                        newDate.setDate(newDate.getDate() - 1);
-                        setVideoDate(newDate);
-                        setNextToken(null); // clear older_than_ts for next request
-                        loadingRef.current = false;
-                        if (zeroTries >= 2) {
-                            setNoEventsDate(date);
-                            setLoading(false);
+                        if (data.LastEvaluatedKey && data.LastEvaluatedKey.event_ts) {
+                            // 0 events but LastEvaluatedKey: page by event_ts, do NOT decrement date
+                            setNextToken(data.LastEvaluatedKey.event_ts);
+                            loadingRef.current = false;
                             return;
                         } else {
-                            setZeroEntryCount(zeroTries + 1);
-                            // Do NOT recursively call loadEvents here. Let the observer trigger the next call for the new date.
-                            return;
+                            // 0 events and NO LastEvaluatedKey: decrement date
+                            const newDate = new Date(date);
+                            newDate.setDate(newDate.getDate() - 1);
+                            setVideoDate(newDate);
+                            setNextToken(null); // clear older_than_ts for next request
+                            loadingRef.current = false;
+                            if (zeroTries >= 2) {
+                                setNoEventsDate(date);
+                                setLoading(false);
+                                return;
+                            } else {
+                                setZeroEntryCount(zeroTries + 1);
+                                // Let the observer trigger the next call for the new date.
+                                return;
+                            }
                         }
                     } else {
                         setNextToken(null);
