@@ -1,4 +1,4 @@
-const API_HOST = 'https://api.security-videos.brianandkelly.ws';
+const API_HOST = 'https://api.security-videos.brianandkelly.ws/v2';
 
 /**
  * A helper function to handle API requests.
