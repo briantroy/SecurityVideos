@@ -5,6 +5,7 @@ import Sidebar from './components/Sidebar';
 import Timeline from './components/Timeline';
 import MediaViewer from './components/MediaViewer';
 import { getCameraList } from './api';
+import { API_HOST } from './api';
 import './App.css';
 
 const GOOGLE_CLIENT_ID = "522648161569-735fsdpk8vf40tl854ktv0kg9629hn8d.apps.googleusercontent.com";
@@ -38,7 +39,7 @@ function App() {
     const handleLoginSuccess = async (credentialResponse) => {
         // Send Google credential to backend to set httpOnly JWT cookie
         try {
-            const res = await fetch('https://api.security-videos.brianandkelly.ws/auth/google', {
+            const res = await fetch(`${API_HOST}/auth/google`, {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ id_token: credentialResponse.credential }),
@@ -74,8 +75,8 @@ function App() {
 
     // Fetch camera and group lists after successful login
     useEffect(() => {
-        // Always call API without explicit token; backend reads JWT from httpOnly cookie
-        if (userToken) {
+        // Only call API after JWT is set by /auth/google
+        if (userToken === 'jwt-set') {
             getCameraList()
                 .then(data => {
                     setCameras(data.cameras || []);
@@ -100,28 +101,6 @@ function App() {
         setSidebarOpen(!isSidebarOpen);
     };
 
-    // On mount, check if JWT is present by pinging a protected endpoint
-    useEffect(() => {
-        (async () => {
-            try {
-                const res = await fetch('https://api.security-videos.brianandkelly.ws/cameras', { credentials: 'include' });
-                if (res.ok) {
-                    setUserToken('jwt-set');
-                    // Optionally, get user info from backend
-                    const data = await res.json();
-                    setUser({
-                        name: data.name,
-                        email: data.email,
-                        picture: data.picture,
-                    });
-                } else {
-                    setUserToken(null);
-                }
-            } catch {
-                setUserToken(null);
-            }
-        })();
-    }, []);
 
     if (!userToken) {
         return (
