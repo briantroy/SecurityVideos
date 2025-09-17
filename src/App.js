@@ -50,9 +50,9 @@ function App() {
                     console.log('JWT check response data:', data);
                     
                     // Only set user data if it's actually present
-                    if (data.name && data.email && data.picture) {
+                    if ((data.name || data.username) && data.email && data.picture) {
                         const userData = {
-                            name: data.name,
+                            name: data.name || data.username,
                             email: data.email,
                             picture: data.picture,
                         };
@@ -114,7 +114,12 @@ function App() {
     };
 
     // Handle user sign-out
-    const handleSignOut = useCallback(() => {
+    const handleSignOut = useCallback(async () => {
+        try {
+            await fetch(`${API_HOST}/auth/logout`, { method: 'POST', credentials: 'include' });
+        } catch (err) {
+            console.warn('Logout request failed:', err);
+        }
         googleLogout();
         setUserToken(null);
         setUser(null);
