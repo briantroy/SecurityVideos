@@ -760,11 +760,26 @@ html, body {
 }
 
 .event-card.selected {
-  border-color: #3498db;
+  border-color: #2c3e50; /* match sidebar background */
+  border-width: 4px;
+  box-shadow: 0 0 0 3px rgba(44, 62, 80, 0.22), 0 8px 18px rgba(44, 62, 80, 0.35);
 }
 
 .event-card.seen {
-  opacity: 0.7;
+  opacity: 1;
+  background-color: #eef6fd; /* subtle blue tint */
+  border-color: #3498db; /* blue accent */
+  box-shadow: inset 6px 0 0 0 #3498db, 0 2px 6px rgba(52, 152, 219, 0.18);
+}
+
+.event-card.seen .camera-name {
+  color: #1f4f78;
+  font-weight: 800;
+}
+
+.event-card.seen .timestamp {
+  color: #1f4f78;
+  font-weight: 600;
 }
 
 .event-card-thumbnail {
