@@ -1,16 +1,55 @@
-import React from 'react';
+import React, { useState, useEffect } from 'react';
 
-function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onToggle, currentScope }) {
-    if (!user) {
+function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onToggle, currentScope, userToken }) {
+    const [localUser, setLocalUser] = useState(null);
+
+    // Load user from localStorage and keep it synced
+    useEffect(() => {
+        const loadUserFromStorage = () => {
+            const savedUser = localStorage.getItem('user');
+            if (savedUser) {
+                const parsedUser = JSON.parse(savedUser);
+                setLocalUser(parsedUser);
+            } else {
+                setLocalUser(null);
+            }
+        };
+
+        // Load initially
+        loadUserFromStorage();
+
+        // Listen for storage changes (in case another tab logs out)
+        window.addEventListener('storage', loadUserFromStorage);
+        
+        return () => {
+            window.removeEventListener('storage', loadUserFromStorage);
+        };
+    }, []);
+
+    // Use localStorage user or fallback to prop user
+    const displayUser = localUser || user;
+
+    // Don't show sidebar if not authenticated at all
+    if (!userToken) {
         return null;
     }
 
     return (
         <aside className={`sidebar ${isOpen ? 'open' : 'closed'}`}>
             <div className="sidebar-header">
-                <img src={user.picture} alt={user.name} className="profile-pic" />
-                <h3>{user.name}</h3>
-                <p>{user.email}</p>
+                {displayUser ? (
+                    <>
+                        <img src={displayUser.picture} alt={displayUser.name} className="profile-pic" />
+                        <h3>{displayUser.name}</h3>
+                        <p>{displayUser.email}</p>
+                    </>
+                ) : (
+                    <>
+                        <div className="profile-pic-placeholder">👤</div>
+                        <h3>User</h3>
+                        <p>Authenticated</p>
+                    </>
+                )}
                 <button onClick={onToggle} className="sidebar-toggle">
                     {isOpen ? '‹' : '›'}
                 </button>

@@ -15,7 +15,11 @@ const GOOGLE_DOMAIN_ALLOWED = "brianandkelly.ws";
 function App() {
     // JWT token is not stored in JS, but we track login state
     const [userToken, setUserToken] = useState(null); // Used only for UI state, not for API calls
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState(() => {
+        // Load user data from localStorage on initialization
+        const savedUser = localStorage.getItem('user');
+        return savedUser ? JSON.parse(savedUser) : null;
+    });
     const [cameras, setCameras] = useState([]);
     const [groups, setGroups] = useState([]);
     // Load last scope from localStorage if available
@@ -35,6 +39,41 @@ function App() {
         }
     }, []);
 
+    // Check for JWT cookie on app load
+    useEffect(() => {
+        (async () => {
+            try {
+                const res = await fetch(`${API_HOST}/auth/status`, { credentials: 'include' });
+                if (res.ok) {
+                    setUserToken('jwt-set');
+                    const data = await res.json();
+                    console.log('JWT check response data:', data);
+                    
+                    // Only set user data if it's actually present
+                    if (data.name && data.email && data.picture) {
+                        const userData = {
+                            name: data.name,
+                            email: data.email,
+                            picture: data.picture,
+                        };
+                        console.log('Setting userData from JWT check:', userData);
+                        setUser(userData);
+                        localStorage.setItem('user', JSON.stringify(userData));
+                    } else {
+                        console.log('No user data in JWT response - user info not available');
+                        // Keep existing localStorage user data if available
+                    }
+                } else {
+                    setUserToken(null);
+                    localStorage.removeItem('user');
+                }
+            } catch {
+                setUserToken(null);
+                localStorage.removeItem('user');
+            }
+        })();
+    }, []);
+
     // Handle successful Google sign-in
     const handleLoginSuccess = async (credentialResponse) => {
         // Send Google credential to backend to set httpOnly JWT cookie
@@ -48,11 +87,21 @@ function App() {
             if (!res.ok) throw new Error('Failed to authenticate with backend');
             // Optionally, get user info from backend response
             const data = await res.json();
-            setUser({
-                name: data.name,
-                email: data.email,
-                picture: data.picture,
-            });
+            console.log('Google login response data:', data);
+            
+            // Only set user data if it's actually present
+            if ((data.name || data.username) && data.email && data.picture) {
+                const userData = {
+                    name: data.name || data.username,
+                    email: data.email,
+                    picture: data.picture,
+                };
+                console.log('Setting userData from login:', userData);
+                setUser(userData);
+                localStorage.setItem('user', JSON.stringify(userData));
+            } else {
+                console.log('No user data in login response - backend needs to return user info');
+            }
             setUserToken('jwt-set'); // Just to trigger UI state
         } catch (err) {
             console.error('Login failed:', err);
@@ -69,6 +118,7 @@ function App() {
         googleLogout();
         setUserToken(null);
         setUser(null);
+        localStorage.removeItem('user');
         setCameras([]);
         setGroups([]);
     }, []);
@@ -135,6 +185,7 @@ function App() {
                     isOpen={isSidebarOpen}
                     onToggle={toggleSidebar}
                     currentScope={currentScope}
+                    userToken={userToken}
                 />
                 <main ref={mainContentRef} className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
                     <header className="main-header">
