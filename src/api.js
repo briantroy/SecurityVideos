@@ -43,6 +43,7 @@ export const getCameraList = () => {
  * @param {object} options - Additional options like 'older_than_ts' for pagination.
  * @returns {Promise<object>}
  * 
+ * 
  */
 export const getEvents = (scope, options = {}) => {
     let endpoint = '/lastfive';
