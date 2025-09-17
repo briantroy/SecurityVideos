@@ -37,7 +37,8 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
     const [seenGroups, setSeenGroups] = useState([]);
-    const [nextToken, setNextToken] = useState(null);
+    const [nextToken, setNextToken] = useState(null); // legacy: event_ts only (kept for minimal changes)
+    const [lastKey, setLastKey] = useState(null); // full LastEvaluatedKey from API { event_ts, video_date }
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(null);
     const [videoDate, setVideoDate] = useState(new Date());
@@ -58,21 +59,17 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         if (loadingRef.current) return; // block if already loading
         if (node && scrollableContainer.current) {
             observer.current = new IntersectionObserver(entries => {
-                const isGroup = scope.startsWith('filter:');
                 if (
                     entries[0].isIntersecting &&
                     !loadingRef.current &&
-                    (
-                        (nextToken !== undefined && nextToken !== null) ||
-                        (isGroup && nextToken === null) // allow date paging for group views
-                    )
+                    (lastKey !== null) // only continue if API provided a next page key
                 ) {
                     loadEvents(true, undefined, undefined, viewKeyRef.current);
                 }
             }, { root: scrollableContainer.current });
             observer.current.observe(node);
         }
-    }, [nextToken, scrollableContainer, scope]);
+    }, [lastKey, scrollableContainer, scope]);
 
     // Initial load and scope change
     useEffect(() => {
@@ -82,6 +79,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         setEvents([]);
         setGroupedEvents([]);
         setNextToken(null);
+        setLastKey(null);
         setVideoDate(new Date());
         videoDateRef.current = new Date();
         setZeroEntryCount(0);
@@ -108,11 +106,15 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         const options = {
             num_results: scope.startsWith('filter:') ? 50 : 50,
         };
-        if (nextToken && loadMore) {
-            options.older_than_ts = nextToken;
-        }
-        if (scope === 'latest' || scope.startsWith('filter:')) {
-            options.video_date = formattedDate;
+        // After first request, ALWAYS use values from last response
+        if (loadMore && lastKey) {
+            if (lastKey.event_ts) options.older_than_ts = lastKey.event_ts;
+            if (lastKey.capture_date) options.video_date = lastKey.capture_date;
+        } else {
+            // Initial request can optionally provide today's date for latest/filter
+            if (scope === 'latest' || scope.startsWith('filter:')) {
+                options.video_date = formattedDate;
+            }
         }
 
     getEvents(scope, options)
@@ -122,43 +124,17 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
                     return;
                 }
                 const count = data.Items.length;
-                // 1. Handle 0 results
+                // Update paging key from response in ALL cases
+                const lek = data.LastEvaluatedKey || null;
+                setLastKey(lek);
+                setNextToken(lek && lek.event_ts ? lek.event_ts : null);
+
+                // 1. Handle 0 results: just stop here; next scroll will use updated LEK
                 if (count === 0) {
-                    // Only clear events on the very first call for a group (filter)
-                    if (!loadMore && scope.startsWith('filter:')) {
-                        setEvents([]);
-                        setGroupedEvents([]);
-                    }
-                    if (scope.startsWith('filter:') && data.LastEvaluatedKey && data.LastEvaluatedKey.event_ts) {
-                        // For groups, recursively fetch previous days and accumulate events
-                        const newDate = new Date(date);
-                        newDate.setDate(newDate.getDate() - 1);
-                        setVideoDate(newDate);
-                        setNextToken(null); // clear older_than_ts for next request
-                        loadingRef.current = false;
-                        // Always use loadMore=true for subsequent calls to accumulate
-                        loadEvents(true, newDate, zeroTries, viewKey);
-                        return;
-                    }
-                    setNextToken(null);
-                    if (scope.startsWith('filter:')) {
-                        if (zeroTries >= 2) {
-                            setNoEventsDate(date);
-                            setLoading(false);
-                            return;
-                        } else {
-                            const newDate = new Date(date);
-                            newDate.setDate(newDate.getDate() - 1);
-                            setVideoDate(newDate);
-                            setZeroEntryCount(zeroTries + 1);
-                            loadEvents(true, newDate, zeroTries + 1, viewKey);
-                            return;
-                        }
-                    } else {
+                    if (!lek) {
                         setNoEventsDate(date);
-                        setLoading(false);
-                        return;
                     }
+                    return;
                 }
 
                 // 2. Handle >0 results
@@ -166,19 +142,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
                 setNoEventsDate(null);
 
 
-                // 3. Handle LastEvaluatedKey for infinite scroll
-                if (data.LastEvaluatedKey && data.LastEvaluatedKey.event_ts) {
-                    setNextToken(data.LastEvaluatedKey.event_ts);
-                } else {
-                    setNextToken(null);
-                    // If >0 results and no LastEvaluatedKey, decrement videoDate for next scroll
-                    if (count > 0 && (scope === 'latest' || scope.startsWith('filter:'))) {
-                        const newDate = new Date(date);
-                        newDate.setDate(newDate.getDate() - 1);
-                        setVideoDate(newDate);
-                        videoDateRef.current = newDate;
-                    }
-                }
+                // 3. LEK already handled; no manual date paging needed
 
                 // 4. Always append new events
                 if (viewKeyRef.current !== viewKey) return; // Only update if view matches
