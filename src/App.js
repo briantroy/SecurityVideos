@@ -191,7 +191,7 @@ function App() {
                 <main ref={mainContentRef} className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
                     <header className="main-header">
                         <h1>
-                            {currentScope.startsWith('filter:') ? `Filter: ${currentScope.substring(7)}` :
+                            {currentScope.startsWith('filter:') ? `Group: ${currentScope.substring(7)}` :
                              currentScope === 'latest' ? 'Latest Events' : `Camera: ${currentScope}`}
                         </h1>
                     </header>
