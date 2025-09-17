@@ -4,6 +4,7 @@ const EventCard = ({ event: eventGroup, onSelectMedia, isSelected, isSeen }) => 
     const firstEvent = eventGroup[0];
     const eventDate = new Date(firstEvent.event_ts);
     const cardClassName = `event-card ${isSelected ? 'selected' : ''} ${isSeen && !isSelected ? 'seen' : ''}`;
+    const uniqueCameras = Array.from(new Set(eventGroup.map(e => e.camera_name))).filter(Boolean);
 
     return (
         <div className={cardClassName} onClick={() => onSelectMedia(eventGroup)}>
@@ -24,8 +25,12 @@ const EventCard = ({ event: eventGroup, onSelectMedia, isSelected, isSeen }) => 
             </div>
             <div className="event-card-body">
                 <div className="event-card-header">
-                    <span className="camera-name">{firstEvent.camera_name}</span>
                     <span className="timestamp">{eventDate.toLocaleString()}</span>
+                </div>
+                <div className="event-card-cameras" aria-label="Cameras in this group">
+                    {uniqueCameras.map((name) => (
+                        <span key={name} className="camera-chip">{name}</span>
+                    ))}
                 </div>
                 <div className="event-card-details">
                     <span className="event-type">{firstEvent.event_type}</span>

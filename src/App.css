@@ -175,9 +175,9 @@ html, body {
 }
 /* Dynamic event card sizing for all screens */
 .event-card {
-  min-height: 6vh;
-  max-height: 8vh;
-  height: 7vh;
+  min-height: 64px; /* ensure a decent tap target */
+  height: auto; /* allow content to expand for chips + timestamp */
+  max-height: none;
   padding: 0.5vh 1vw;
   font-size: 1.8vh;
   box-sizing: border-box;
@@ -827,6 +827,24 @@ html, body {
   margin-bottom: 10px;
 }
 
+.event-card-cameras {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+  margin: 2px 0 6px 0;
+}
+
+.camera-chip {
+  background: #eef6fd;
+  color: #1f4f78;
+  border: 1px solid #3498db;
+  border-radius: 12px;
+  padding: 2px 8px;
+  font-size: clamp(0.58rem, 0.85vw, 0.9rem);
+  line-height: 1.6;
+  white-space: nowrap;
+}
+
 .camera-name {
   font-weight: bold;
   font-size: clamp(0.7rem, 1vw, 1.1rem);
@@ -841,9 +859,10 @@ html, body {
   font-size: clamp(0.6rem, 0.9vw, 0.95rem);
   color: #777;
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  white-space: normal; /* allow wrapping so date is always visible */
+  overflow: visible;
+  text-overflow: clip;
+  word-break: break-word;
 }
 
 .event-type {
