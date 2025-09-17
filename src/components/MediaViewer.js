@@ -20,6 +20,13 @@ const MediaViewer = ({ event: eventGroup }) => {
         setCurrentIndex(0);
     }, [eventGroup]);
 
+    // Ensure index stays within bounds if the group shrinks
+    useEffect(() => {
+        if (Array.isArray(eventGroup) && currentIndex >= eventGroup.length) {
+            setCurrentIndex(0);
+        }
+    }, [currentIndex, eventGroup]);
+
     // Apply saved volume/mute to video when it loads
     useEffect(() => {
         const video = videoRef.current;
@@ -38,12 +45,13 @@ const MediaViewer = ({ event: eventGroup }) => {
         localStorage.setItem(MUTE_KEY, video.muted);
     };
 
-    if (!eventGroup || eventGroup.length === 0) {
+    if (!Array.isArray(eventGroup) || eventGroup.length === 0) {
         return null;
     }
 
-    const currentEvent = eventGroup[currentIndex];
-    const eventDate = new Date(currentEvent.event_ts);
+    const currentEvent = eventGroup[currentIndex] ?? eventGroup[0];
+    if (!currentEvent) return null;
+    const eventDate = currentEvent.event_ts ? new Date(currentEvent.event_ts) : null;
 
     const handleNext = () => {
         setCurrentIndex((prevIndex) => (prevIndex + 1) % eventGroup.length);
@@ -57,8 +65,8 @@ const MediaViewer = ({ event: eventGroup }) => {
         <div className="media-viewer">
             <div className="media-info">
                 <div style={{ display: 'flex', alignItems: 'center', gap: '1em' }}>
-                    <span style={{ fontWeight: 'bold' }}>{currentEvent.camera_name}</span>
-                    <span>{eventDate.toLocaleString()}</span>
+                    <span style={{ fontWeight: 'bold' }}>{currentEvent.camera_name || ''}</span>
+                    <span>{eventDate ? eventDate.toLocaleString() : ''}</span>
                 </div>
                 {eventGroup.length > 1 && (
                     <div className="media-navigation">
@@ -82,7 +90,7 @@ const MediaViewer = ({ event: eventGroup }) => {
                         onVolumeChange={handleVolumeChange}
                     />
                 ) : (
-                    <img src={currentEvent.uri} alt={`Event from ${currentEvent.camera_name}`} className="image-embed" />
+                    <img src={currentEvent.uri} alt={`Event from ${currentEvent.camera_name || 'camera'}`} className="image-embed" />
                 )}
             </div>
         </div>
