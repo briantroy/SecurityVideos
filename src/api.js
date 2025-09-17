@@ -1,4 +1,4 @@
-export const API_HOST = 'https://api.security-videos.brianandkelly.ws/v3';
+export const API_HOST = 'https://api.security-videos.brianandkelly.ws/v4';
 
 /**
  * A helper function to handle API requests using JWT from httpOnly cookie.

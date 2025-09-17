@@ -106,7 +106,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         // Always use local date in YYYY-MM-DD
         const formattedDate = date.toLocaleDateString('en-CA');
         const options = {
-            num_results: scope.startsWith('filter:') ? 100 : 50,
+            num_results: scope.startsWith('filter:') ? 50 : 50,
         };
         if (nextToken && loadMore) {
             options.older_than_ts = nextToken;
