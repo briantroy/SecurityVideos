@@ -47,7 +47,6 @@ function App() {
                 if (res.ok) {
                     setUserToken('jwt-set');
                     const data = await res.json();
-                    console.log('JWT check response data:', data);
                     
                     // Only set user data if it's actually present
                     if ((data.name || data.username) && data.email && data.picture) {
@@ -56,11 +55,10 @@ function App() {
                             email: data.email,
                             picture: data.picture,
                         };
-                        console.log('Setting userData from JWT check:', userData);
                         setUser(userData);
                         localStorage.setItem('user', JSON.stringify(userData));
                     } else {
-                        console.log('No user data in JWT response - user info not available');
+                        
                         // Keep existing localStorage user data if available
                     }
                 } else {
@@ -87,7 +85,6 @@ function App() {
             if (!res.ok) throw new Error('Failed to authenticate with backend');
             // Optionally, get user info from backend response
             const data = await res.json();
-            console.log('Google login response data:', data);
             
             // Only set user data if it's actually present
             if ((data.name || data.username) && data.email && data.picture) {
@@ -96,11 +93,10 @@ function App() {
                     email: data.email,
                     picture: data.picture,
                 };
-                console.log('Setting userData from login:', userData);
                 setUser(userData);
                 localStorage.setItem('user', JSON.stringify(userData));
             } else {
-                console.log('No user data in login response - backend needs to return user info');
+                
             }
             setUserToken('jwt-set'); // Just to trigger UI state
         } catch (err) {

@@ -52,6 +52,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
     const [refreshing, setRefreshing] = useState(false);
     const viewKeyRef = useRef('');
     const loadingRef = useRef(false); // <--- add loadingRef
+    const groupKeySetRef = useRef(new Set()); // Track rendered group keys to prevent duplicates
 
     // Infinite scroll observer
     const lastEventElementRef = useCallback(node => {
@@ -84,6 +85,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         videoDateRef.current = new Date();
         setZeroEntryCount(0);
         setNoEventsDate(null);
+        groupKeySetRef.current = new Set();
         loadEvents(false, new Date(), 0, viewKey);
     }, [scope]);
 
@@ -147,23 +149,38 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
                 // 4. Always append new events
                 if (viewKeyRef.current !== viewKey) return; // Only update if view matches
                 setEvents(prevEvents => loadMore ? [...prevEvents, ...data.Items] : data.Items);
-                setGroupedEvents(prevGroups => {
-                    if (scope === 'latest') {
-                        return loadMore
-                            ? [...prevGroups, ...data.Items.map(event => [event])]
-                            : data.Items.map(event => [event]);
-                    } else {
-                        return loadMore
-                            ? [...prevGroups, ...groupEvents(data.Items)]
-                            : groupEvents(data.Items);
+                const incomingGroupsRaw = (scope === 'latest')
+                    ? data.Items.map(event => [event])
+                    : groupEvents(data.Items);
+
+                // Dedup within the same batch, then against already-rendered groups
+                const batchSeen = new Set();
+                const incomingGroups = [];
+                for (const g of incomingGroupsRaw) {
+                    const k = makeGroupKey(g);
+                    if (batchSeen.has(k)) continue; // drop duplicates within this batch
+                    batchSeen.add(k);
+                    if (groupKeySetRef.current.has(k)) continue; // drop duplicates already rendered
+                    incomingGroups.push(g);
+                }
+
+                if (loadMore) {
+                    if (incomingGroups.length > 0) {
+                        for (const g of incomingGroups) {
+                            groupKeySetRef.current.add(makeGroupKey(g));
+                        }
+                        setGroupedEvents(prevGroups => [...prevGroups, ...incomingGroups]);
                     }
-                });
+                } else {
+                    groupKeySetRef.current = new Set(incomingGroups.map(g => makeGroupKey(g)));
+                    setGroupedEvents(incomingGroups);
+                }
                 // On first load, save the event_ts of the first event for this scope
                 if (!loadMore && data.Items.length > 0) {
                     setFirstEventTsByScope(prev => ({ ...prev, [scope]: data.Items[0].event_ts }));
                 }
                 if (!loadMore && data.Items.length > 0) {
-                    setSelectedMedia(groupEvents(data.Items)[0]);
+                    setSelectedMedia(incomingGroups[0]);
                 }
             })
             .catch(err => {
@@ -182,8 +199,10 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
             });
     };
 
+    const makeGroupKey = useCallback((group) => group.map(e => e.object_key).sort().join('|'), []);
+
     const handleSelectMedia = (eventGroup) => {
-        const key = eventGroup.map(e => e.object_key).join('-');
+        const key = makeGroupKey(eventGroup);
         if (!seenGroups.includes(key)) {
             setSeenGroups([...seenGroups, key]);
         }
@@ -215,13 +234,22 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
                     setFirstEventTsByScope(prev => ({ ...prev, [scope]: invertedItems[0].event_ts }));
                     // Prepend new events to the timeline in correct order
                     setEvents(prev => [...invertedItems, ...prev]);
-                    let grouped;
-                    if (scope === 'latest') {
-                        grouped = [...invertedItems.map(event => [event]), ...groupedEvents];
-                    } else {
-                        grouped = [...groupEvents(invertedItems), ...groupedEvents];
+                    const incomingGroupsRaw = (scope === 'latest')
+                        ? invertedItems.map(event => [event])
+                        : groupEvents(invertedItems);
+                    const batchSeen = new Set();
+                    const uniqueIncoming = [];
+                    for (const g of incomingGroupsRaw) {
+                        const k = makeGroupKey(g);
+                        if (batchSeen.has(k)) continue; // drop duplicates within batch
+                        batchSeen.add(k);
+                        if (groupKeySetRef.current.has(k)) continue; // drop duplicates already rendered
+                        groupKeySetRef.current.add(k);
+                        uniqueIncoming.push(g);
                     }
-                    setGroupedEvents(grouped);
+                    if (uniqueIncoming.length > 0) {
+                        setGroupedEvents(prev => [...uniqueIncoming, ...prev]);
+                    }
                 }
             })
             .catch(err => {
@@ -229,6 +257,19 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
             })
             .finally(() => setRefreshing(false));
     };
+
+    // Ensure unique keys at render time as a final guard
+    const renderList = (() => {
+        const seen = new Set();
+        const list = [];
+        for (const g of groupedEvents) {
+            const k = makeGroupKey(g);
+            if (seen.has(k)) continue;
+            seen.add(k);
+            list.push({ key: k, group: g });
+        }
+        return list;
+    })();
 
     return (
         <div className="timeline-container">
@@ -241,20 +282,17 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
                     {refreshing ? 'Refreshing...' : 'Get New Events'}
                 </button>
                 {/* Timeline events */}
-                {groupedEvents.map((group, index) => {
-                    const key = group.map(e => e.object_key).join('-');
-                    const isSelected = selectedMedia && key === selectedMedia.map(e => e.object_key).join('-');
+                {renderList.map(({ key, group }, idx) => {
+                    const isSelected = selectedMedia && key === makeGroupKey(selectedMedia);
                     const isSeen = seenGroups.includes(key);
-                    // Always keep the infinite scroll trigger on the last card
-                    if (index === groupedEvents.length - 1) {
-                        return (
-                            <div ref={lastEventElementRef} key={key}>
-                                <EventCard event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />
-                            </div>
-                        );
-                    } else {
-                        return <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />;
-                    }
+                    const isLast = idx === renderList.length - 1;
+                    return isLast ? (
+                        <div ref={lastEventElementRef} key={key}>
+                            <EventCard event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />
+                        </div>
+                    ) : (
+                        <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />
+                    );
                 })}
                 {loading && (
                     <div className="loading-indicator" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', padding: '16px' }}>
