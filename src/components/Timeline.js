@@ -209,12 +209,15 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
     const makeGroupKey = useCallback((group) => group.map(e => e.object_key).sort().join('|'), []);
 
     const markVideoAsViewed = useCallback((objectKey) => {
-        if (!seenVideos.includes(objectKey)) {
-            const newSeenVideos = [...seenVideos, objectKey];
-            setSeenVideos(newSeenVideos);
-            localStorage.setItem('viewedVideos', JSON.stringify(newSeenVideos));
-        }
-    }, [seenVideos]);
+        setSeenVideos(prevSeenVideos => {
+            if (!prevSeenVideos.includes(objectKey)) {
+                const newSeenVideos = [...prevSeenVideos, objectKey];
+                localStorage.setItem('viewedVideos', JSON.stringify(newSeenVideos));
+                return newSeenVideos;
+            }
+            return prevSeenVideos;
+        });
+    }, []); // Remove seenVideos dependency to avoid stale closure
 
     const handleSelectMedia = (eventGroup) => {
         const key = makeGroupKey(eventGroup);
@@ -312,10 +315,23 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
                     const isLast = idx === renderList.length - 1;
                     return isLast ? (
                         <div ref={lastEventElementRef} key={key}>
-                            <EventCard event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />
+                            <EventCard 
+                                event={group} 
+                                onSelectMedia={handleSelectMedia} 
+                                isSelected={isSelected} 
+                                isSeen={isSeen}
+                                seenVideos={seenVideos}
+                            />
                         </div>
                     ) : (
-                        <EventCard key={key} event={group} onSelectMedia={handleSelectMedia} isSelected={isSelected} isSeen={isSeen} />
+                        <EventCard 
+                            key={key} 
+                            event={group} 
+                            onSelectMedia={handleSelectMedia} 
+                            isSelected={isSelected} 
+                            isSeen={isSeen}
+                            seenVideos={seenVideos}
+                        />
                     );
                 })}
                 {loading && (

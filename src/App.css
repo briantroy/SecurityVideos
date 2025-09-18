@@ -844,6 +844,28 @@ html, body {
   font-size: clamp(0.58rem, 0.85vw, 0.9rem);
   line-height: 1.6;
   white-space: nowrap;
+  transition: all 0.2s ease-in-out;
+}
+
+/* Camera chip view status styles */
+.camera-chip--unviewed {
+  background: #f8f9fa;
+  color: #6c757d;
+  border: 1px solid #dee2e6;
+  opacity: 0.6;
+}
+
+.camera-chip--partially-viewed {
+  background: linear-gradient(90deg, #d4edda 0%, #d4edda 50%, #f8f9fa 50%, #f8f9fa 100%);
+  color: #155724;
+  border: 1px solid #28a745;
+}
+
+.camera-chip--fully-viewed {
+  background: #d4edda;
+  color: #155724;
+  border: 1px solid #28a745;
+  font-weight: 600;
 }
 
 .camera-name {
