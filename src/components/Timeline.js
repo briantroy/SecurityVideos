@@ -36,7 +36,10 @@ const groupEvents = (events) => {
 const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia }) => {
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
-    const [seenGroups, setSeenGroups] = useState([]);
+    const [seenGroups, setSeenGroups] = useState(() => {
+        const saved = localStorage.getItem('viewedEvents');
+        return saved ? JSON.parse(saved) : [];
+    });
     const [nextToken, setNextToken] = useState(null); // legacy: event_ts only (kept for minimal changes)
     const [lastKey, setLastKey] = useState(null); // full LastEvaluatedKey from API { event_ts, video_date }
     const [loading, setLoading] = useState(false);
@@ -204,7 +207,9 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
     const handleSelectMedia = (eventGroup) => {
         const key = makeGroupKey(eventGroup);
         if (!seenGroups.includes(key)) {
-            setSeenGroups([...seenGroups, key]);
+            const newSeenGroups = [...seenGroups, key];
+            setSeenGroups(newSeenGroups);
+            localStorage.setItem('viewedEvents', JSON.stringify(newSeenGroups));
         }
         const newSelectedMedia = [...eventGroup];
         newSelectedMedia.autoplay = true;
