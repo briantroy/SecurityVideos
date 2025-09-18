@@ -40,6 +40,10 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         const saved = localStorage.getItem('viewedEvents');
         return saved ? JSON.parse(saved) : [];
     });
+    const [seenVideos, setSeenVideos] = useState(() => {
+        const saved = localStorage.getItem('viewedVideos');
+        return saved ? JSON.parse(saved) : [];
+    });
     const [nextToken, setNextToken] = useState(null); // legacy: event_ts only (kept for minimal changes)
     const [lastKey, setLastKey] = useState(null); // full LastEvaluatedKey from API { event_ts, video_date }
     const [loading, setLoading] = useState(false);
@@ -204,6 +208,14 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
 
     const makeGroupKey = useCallback((group) => group.map(e => e.object_key).sort().join('|'), []);
 
+    const markVideoAsViewed = useCallback((objectKey) => {
+        if (!seenVideos.includes(objectKey)) {
+            const newSeenVideos = [...seenVideos, objectKey];
+            setSeenVideos(newSeenVideos);
+            localStorage.setItem('viewedVideos', JSON.stringify(newSeenVideos));
+        }
+    }, [seenVideos]);
+
     const handleSelectMedia = (eventGroup) => {
         const key = makeGroupKey(eventGroup);
         if (!seenGroups.includes(key)) {
@@ -213,6 +225,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         }
         const newSelectedMedia = [...eventGroup];
         newSelectedMedia.autoplay = true;
+        newSelectedMedia.markVideoAsViewed = markVideoAsViewed; // Pass the function
         setSelectedMedia(newSelectedMedia);
     };
 
@@ -289,7 +302,13 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
                 {/* Timeline events */}
                 {renderList.map(({ key, group }, idx) => {
                     const isSelected = selectedMedia && key === makeGroupKey(selectedMedia);
-                    const isSeen = seenGroups.includes(key);
+                    
+                    // For 'latest' scope (ungrouped), check individual video views
+                    // For other scopes (grouped), check group views
+                    const isSeen = scope === 'latest' 
+                        ? group.every(event => seenVideos.includes(event.object_key))
+                        : seenGroups.includes(key);
+                    
                     const isLast = idx === renderList.length - 1;
                     return isLast ? (
                         <div ref={lastEventElementRef} key={key}>

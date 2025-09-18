@@ -20,6 +20,16 @@ const MediaViewer = ({ event: eventGroup }) => {
         setCurrentIndex(0);
     }, [eventGroup]);
 
+    // Mark current video as viewed when it's displayed
+    useEffect(() => {
+        if (Array.isArray(eventGroup) && eventGroup.length > 0 && eventGroup.markVideoAsViewed) {
+            const currentEvent = eventGroup[currentIndex] ?? eventGroup[0];
+            if (currentEvent && currentEvent.object_key) {
+                eventGroup.markVideoAsViewed(currentEvent.object_key);
+            }
+        }
+    }, [currentIndex, eventGroup]);
+
     // Ensure index stays within bounds if the group shrinks
     useEffect(() => {
         if (Array.isArray(eventGroup) && currentIndex >= eventGroup.length) {
