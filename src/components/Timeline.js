@@ -57,6 +57,8 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
     // Store the first event_ts for each scope for later use
     const [firstEventTsByScope, setFirstEventTsByScope] = useState({});
     const [refreshing, setRefreshing] = useState(false);
+    const autoRefreshTimer = useRef(null);
+    const pulldownButtonRef = useRef(null);
     const viewKeyRef = useRef('');
     const loadingRef = useRef(false); // <--- add loadingRef
     const groupKeySetRef = useRef(new Set()); // Track rendered group keys to prevent duplicates
@@ -239,6 +241,15 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         const newerThanTs = firstEventTsByScope[scope];
         if (!newerThanTs) return; // nothing to fetch
         setRefreshing(true);
+        // Animate button as if clicked
+        if (pulldownButtonRef.current) {
+            pulldownButtonRef.current.classList.add('auto-refreshing');
+            setTimeout(() => {
+                if (pulldownButtonRef.current) {
+                    pulldownButtonRef.current.classList.remove('auto-refreshing');
+                }
+            }, 1200);
+        }
         const options = {
             num_results: scope.startsWith('filter:') ? 100 : 50,
             newer_than_ts: newerThanTs,
@@ -279,6 +290,21 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
             .finally(() => setRefreshing(false));
     };
 
+    // Auto-refresh every 5 minutes if not watching a video
+    useEffect(() => {
+        autoRefreshTimer.current = setInterval(() => {
+            console.log('[AutoRefresh] Timer triggered: fetching new events');
+            handlePullDown();
+        }, 720000); // 12 minutes
+        console.log('[AutoRefresh] Timer started (12 min interval, always active)');
+        return () => {
+            if (autoRefreshTimer.current) {
+                clearInterval(autoRefreshTimer.current);
+                console.log('[AutoRefresh] Timer cleared');
+            }
+        };
+    }, [selectedMedia, scope]);
+
     // Ensure unique keys at render time as a final guard
     const renderList = (() => {
         const seen = new Set();
@@ -296,7 +322,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         <div className="timeline-container">
             <div className="timeline">
                 {/* Pulldown button above the first event */}
-                <button className="timeline-pulldown" onClick={handlePullDown} disabled={refreshing}>
+                <button ref={pulldownButtonRef} className={`timeline-pulldown${refreshing ? ' refreshing' : ''}`} onClick={handlePullDown} disabled={refreshing}>
                     <span className={`refresh-icon${refreshing ? ' spinning' : ''}`} aria-label="refresh" role="img">
                         <img src="/images/refresh-icon.png" alt="refresh" width="20" height="20" style={{display:'block'}} />
                     </span>
