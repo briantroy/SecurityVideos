@@ -292,15 +292,16 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
 
     // Auto-refresh every 5 minutes if not watching a video
     useEffect(() => {
-        if (!selectedMedia) {
-            autoRefreshTimer.current = setInterval(() => {
-                if (!selectedMedia) {
-                    handlePullDown();
-                }
-            }, 300000); // 5 minutes
-        }
+        autoRefreshTimer.current = setInterval(() => {
+            console.log('[AutoRefresh] Timer triggered: fetching new events');
+            handlePullDown();
+        }, 720000); // 12 minutes
+        console.log('[AutoRefresh] Timer started (12 min interval, always active)');
         return () => {
-            if (autoRefreshTimer.current) clearInterval(autoRefreshTimer.current);
+            if (autoRefreshTimer.current) {
+                clearInterval(autoRefreshTimer.current);
+                console.log('[AutoRefresh] Timer cleared');
+            }
         };
     }, [selectedMedia, scope]);
 
