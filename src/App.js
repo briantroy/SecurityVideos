@@ -13,6 +13,9 @@ const GOOGLE_DOMAIN_ALLOWED = "brianandkelly.ws";
 
 
 function App() {
+    // Auto-refresh views list (cameras/groups) every 12 hours
+    const viewsRefreshTimer = useRef();
+
     // JWT token is not stored in JS, but we track login state
     const [userToken, setUserToken] = useState(null); // Used only for UI state, not for API calls
     const [user, setUser] = useState(() => {
@@ -124,10 +127,9 @@ function App() {
         setGroups([]);
     }, []);
 
-    // Fetch camera and group lists after successful login
+    // Fetch camera and group lists after successful login and every 12 hours
     useEffect(() => {
-        // Only call API after JWT is set by /auth/google
-        if (userToken === 'jwt-set') {
+        function fetchViewsList() {
             getCameraList()
                 .then(data => {
                     setCameras(data.cameras || []);
@@ -141,6 +143,16 @@ function App() {
                     }
                 });
         }
+        if (userToken === 'jwt-set') {
+            fetchViewsList(); // Initial fetch
+            if (viewsRefreshTimer.current) clearInterval(viewsRefreshTimer.current);
+            viewsRefreshTimer.current = setInterval(() => {
+                fetchViewsList();
+            }, 12 * 60 * 60 * 1000); // 12 hours
+        }
+        return () => {
+            if (viewsRefreshTimer.current) clearInterval(viewsRefreshTimer.current);
+        };
     }, [userToken, handleSignOut]);
 
     // Save scope to localStorage whenever it changes
