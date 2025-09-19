@@ -20,6 +20,16 @@
   transition: background 0.2s;
   gap: 10px;
 }
+.timeline-pulldown.auto-refreshing {
+  background: #d0e6fa;
+  box-shadow: 0 0 0 4px #3498db44;
+  animation: pulldown-flash 1.2s;
+}
+@keyframes pulldown-flash {
+  0% { background: #d0e6fa; box-shadow: 0 0 0 4px #3498db44; }
+  50% { background: #b3d8f7; box-shadow: 0 0 0 8px #3498db66; }
+  100% { background: #f0f0f0; box-shadow: none; }
+}
 .timeline-pulldown:disabled {
   opacity: 0.7;
   cursor: not-allowed;
@@ -37,12 +47,12 @@
   100% { transform: rotate(360deg); }
 }
 html, body {
+
   height: 100%;
   min-height: 0;
   margin: 0;
   padding: 0;
 }
-
 #root {
   height: 100%;
   min-height: 0;
