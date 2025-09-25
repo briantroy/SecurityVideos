@@ -214,6 +214,7 @@ function App() {
                                 scrollableContainer={mainContentRef}
                                 selectedMedia={selectedMedia}
                                 setSelectedMedia={setSelectedMedia}
+                                user={user}
                             />
                         </div>
                         <div className="media-viewer-panel">

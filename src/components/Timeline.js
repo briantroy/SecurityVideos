@@ -33,7 +33,7 @@ const groupEvents = (events) => {
 
 
 
-const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia }) => {
+const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia, user }) => {
     const [events, setEvents] = useState([]);
     const [groupedEvents, setGroupedEvents] = useState([]);
     const [seenGroups, setSeenGroups] = useState(() => {
@@ -128,12 +128,29 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
             }
         }
 
-    getEvents(scope, options)
+        // Prepare viewed data for auto-saving
+        const viewedData = user ? {
+            userId: user.email,
+            viewedEvents: seenGroups,
+            viewedVideos: seenVideos
+        } : null;
+
+        getEvents(scope, options, viewedData)
             .then(data => {
                 if (viewKeyRef.current !== viewKey) {
                     loadingRef.current = false;
                     return;
                 }
+                
+                // Handle merged viewed data from server
+                if (data._mergedViewedData && data._mergedViewedData.wasMerged) {
+                    const merged = data._mergedViewedData;
+                    setSeenGroups(merged.viewedEvents || []);
+                    setSeenVideos(merged.viewedVideos || []);
+                    localStorage.setItem('viewedEvents', JSON.stringify(merged.viewedEvents || []));
+                    localStorage.setItem('viewedVideos', JSON.stringify(merged.viewedVideos || []));
+                }
+                
                 const count = data.Items.length;
                 // Update paging key from response in ALL cases
                 const lek = data.LastEvaluatedKey || null;
@@ -257,8 +274,24 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia 
         if (scope === 'latest' || scope.startsWith('filter:')) {
             options.video_date = formattedDate;
         }
-    getEvents(scope, options)
+        // Prepare viewed data for auto-saving
+        const viewedData = user ? {
+            userId: user.email,
+            viewedEvents: seenGroups,
+            viewedVideos: seenVideos
+        } : null;
+        
+        getEvents(scope, options, viewedData)
             .then(data => {
+                // Handle merged viewed data from server
+                if (data._mergedViewedData && data._mergedViewedData.wasMerged) {
+                    const merged = data._mergedViewedData;
+                    setSeenGroups(merged.viewedEvents || []);
+                    setSeenVideos(merged.viewedVideos || []);
+                    localStorage.setItem('viewedEvents', JSON.stringify(merged.viewedEvents || []));
+                    localStorage.setItem('viewedVideos', JSON.stringify(merged.viewedVideos || []));
+                }
+                
                 if (data.Items && data.Items.length > 0) {
                     // Invert the items array so newest is last
                     const invertedItems = [...data.Items].reverse();
