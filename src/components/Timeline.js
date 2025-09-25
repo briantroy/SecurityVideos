@@ -44,6 +44,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
         const saved = localStorage.getItem('viewedVideos');
         return saved ? JSON.parse(saved) : [];
     });
+    const [renderTrigger, setRenderTrigger] = useState(0); // Force re-render when viewed data changes
     const [nextToken, setNextToken] = useState(null); // legacy: event_ts only (kept for minimal changes)
     const [lastKey, setLastKey] = useState(null); // full LastEvaluatedKey from API { event_ts, video_date }
     const [loading, setLoading] = useState(false);
@@ -149,6 +150,8 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
                     setSeenVideos(merged.viewedVideos || []);
                     localStorage.setItem('viewedEvents', JSON.stringify(merged.viewedEvents || []));
                     localStorage.setItem('viewedVideos', JSON.stringify(merged.viewedVideos || []));
+                    // Force re-render of existing event cards with updated viewed state
+                    setRenderTrigger(prev => prev + 1);
                 }
                 
                 const count = data.Items.length;
@@ -290,6 +293,8 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
                     setSeenVideos(merged.viewedVideos || []);
                     localStorage.setItem('viewedEvents', JSON.stringify(merged.viewedEvents || []));
                     localStorage.setItem('viewedVideos', JSON.stringify(merged.viewedVideos || []));
+                    // Force re-render of existing event cards with updated viewed state
+                    setRenderTrigger(prev => prev + 1);
                 }
                 
                 if (data.Items && data.Items.length > 0) {
