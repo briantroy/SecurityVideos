@@ -332,7 +332,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
     useEffect(() => {
         autoRefreshTimer.current = setInterval(() => {
             handlePullDown();
-        }, 720000); // 12 minutes
+        }, 300000); // 5 minutes
         return () => {
             if (autoRefreshTimer.current) {
                 clearInterval(autoRefreshTimer.current);
