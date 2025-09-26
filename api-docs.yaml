@@ -1,0 +1,701 @@
+openapi: 3.0.3
+info:
+  title: Security Videos API
+  description: |
+    API for managing security camera events, user authentication, and viewing preferences.
+
+    This API provides endpoints for:
+    - Google OAuth authentication with JWT session management
+    - Retrieving security camera events and metadata
+    - Managing user viewing preferences and history
+    - Image analysis via AWS Rekognition
+
+    **Authentication:** All endpoints except authentication require a valid JWT token sent via httpOnly cookies.
+  version: 4.0.0
+  contact:
+    name: Security Videos Support
+    url: https://security-videos.brianandkelly.ws
+  license:
+    name: Private
+
+servers:
+  - url: https://api.security-videos.brianandkelly.ws/v4
+    description: Production server
+  - url: https://api-dev.security-videos.brianandkelly.ws/v4
+    description: Development server
+
+security:
+  - cookieAuth: []
+
+paths:
+  /auth/google:
+    post:
+      summary: Authenticate with Google OAuth
+      description: |
+        Exchanges a Google OAuth ID token for a JWT session cookie.
+        Sets an httpOnly cookie containing the JWT for subsequent API calls.
+      tags:
+        - Authentication
+      security: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - id_token
+              properties:
+                id_token:
+                  type: string
+                  description: Google OAuth ID token
+                  example: "eyJhbGciOiJSUzI1NiIsImtpZCI6IjE2NzAyN..."
+      responses:
+        '200':
+          description: Authentication successful
+          headers:
+            Set-Cookie:
+              description: HttpOnly JWT cookie for session management
+              schema:
+                type: string
+                example: "jwt=eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...; HttpOnly; Secure; SameSite=None; Path=/"
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '400':
+          description: Invalid request or malformed ID token
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Invalid Google ID token or user not authorized
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '403':
+          description: User domain not allowed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/status:
+    get:
+      summary: Check authentication status
+      description: |
+        Validates the current JWT session and returns user information if authenticated.
+        Used to restore session state on application load.
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: User is authenticated
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/UserProfile'
+        '401':
+          description: User is not authenticated or JWT is invalid
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /auth/logout:
+    post:
+      summary: Sign out user
+      description: |
+        Invalidates the current JWT session and clears the authentication cookie.
+      tags:
+        - Authentication
+      responses:
+        '200':
+          description: Successfully logged out
+          headers:
+            Set-Cookie:
+              description: Clears the JWT cookie
+              schema:
+                type: string
+                example: "jwt=; HttpOnly; Secure; SameSite=None; Path=/; Max-Age=0"
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  message:
+                    type: string
+                    example: "Logged out successfully"
+        '401':
+          description: User was not authenticated
+
+  /cameras:
+    get:
+      summary: Get camera list and filters
+      description: |
+        Retrieves the list of available cameras and their grouping filters.
+        This endpoint provides the metadata needed to populate the sidebar navigation.
+      tags:
+        - Cameras
+      responses:
+        '200':
+          description: Camera list retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/CameraListResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /lastfive:
+    get:
+      summary: Get latest events across all cameras
+      description: |
+        Retrieves the most recent security events from all cameras.
+        Supports pagination and filtering by date.
+      tags:
+        - Events
+      parameters:
+        - name: num_results
+          in: query
+          description: Number of results to return (default 50, max 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: older_than_ts
+          in: query
+          description: Timestamp for pagination - get events older than this timestamp
+          schema:
+            type: integer
+            format: int64
+            example: 1640995200000
+        - name: newer_than_ts
+          in: query
+          description: Timestamp for refresh - get events newer than this timestamp
+          schema:
+            type: integer
+            format: int64
+            example: 1640995200000
+        - name: video_date
+          in: query
+          description: Filter events by video capture date (YYYY-MM-DD format)
+          schema:
+            type: string
+            format: date
+            example: "2023-12-31"
+        - name: capture_date
+          in: query
+          description: Pagination key for video capture date
+          schema:
+            type: string
+            format: date
+            example: "2023-12-31"
+        - name: filter
+          in: query
+          description: Filter events by camera group/category
+          schema:
+            type: string
+            example: "outdoor"
+      responses:
+        '200':
+          description: Events retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /lastfive/{cameraName}:
+    get:
+      summary: Get latest events from specific camera
+      description: |
+        Retrieves the most recent security events from a specific camera.
+        Supports the same pagination and filtering options as the general lastfive endpoint.
+      tags:
+        - Events
+      parameters:
+        - name: cameraName
+          in: path
+          required: true
+          description: Name of the camera to get events from
+          schema:
+            type: string
+            example: "Front Door"
+        - name: num_results
+          in: query
+          description: Number of results to return (default 50, max 100)
+          schema:
+            type: integer
+            minimum: 1
+            maximum: 100
+            default: 50
+        - name: older_than_ts
+          in: query
+          description: Timestamp for pagination
+          schema:
+            type: integer
+            format: int64
+        - name: newer_than_ts
+          in: query
+          description: Timestamp for refresh
+          schema:
+            type: integer
+            format: int64
+        - name: video_date
+          in: query
+          description: Filter events by video capture date
+          schema:
+            type: string
+            format: date
+        - name: capture_date
+          in: query
+          description: Pagination key for video capture date
+          schema:
+            type: string
+            format: date
+      responses:
+        '200':
+          description: Camera events retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/EventsResponse'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Camera not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Internal server error
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /image/labels:
+    get:
+      summary: Get AWS Rekognition labels for an image
+      description: |
+        Analyzes an image using AWS Rekognition and returns detected objects, scenes, and activities.
+        Used for enhanced event categorization and search capabilities.
+      tags:
+        - Image Analysis
+      parameters:
+        - name: image-key
+          in: query
+          required: true
+          description: S3 object key for the image to analyze
+          schema:
+            type: string
+            example: "cameras/front-door/2023/12/31/image_123456.jpg"
+      responses:
+        '200':
+          description: Image analysis completed successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ImageLabelsResponse'
+        '400':
+          description: Missing or invalid image key
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '404':
+          description: Image not found
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Image analysis failed
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+  /viewed-videos/{userId}:
+    post:
+      summary: Save user viewing history
+      description: |
+        Saves which events and videos a user has viewed.
+        The server merges client data with existing server data and returns the merged result.
+        This enables viewing state synchronization across devices.
+      tags:
+        - User Preferences
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User identifier (typically email address)
+          schema:
+            type: string
+            format: email
+            example: "user@brianandkelly.ws"
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/ViewedVideosRequest'
+      responses:
+        '200':
+          description: Viewing history saved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewedVideosResponse'
+        '400':
+          description: Invalid request payload
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to save viewing history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+components:
+  securitySchemes:
+    cookieAuth:
+      type: apiKey
+      in: cookie
+      name: jwt
+      description: JWT token stored in httpOnly cookie
+
+  schemas:
+    UserProfile:
+      type: object
+      required:
+        - email
+        - name
+        - picture
+      properties:
+        email:
+          type: string
+          format: email
+          description: User's email address
+          example: "john.doe@brianandkelly.ws"
+        name:
+          type: string
+          description: User's display name
+          example: "John Doe"
+        username:
+          type: string
+          description: Alternative username field
+          example: "john.doe"
+        picture:
+          type: string
+          format: uri
+          description: URL to user's profile picture
+          example: "https://lh3.googleusercontent.com/a/default-user=s96-c"
+
+    CameraListResponse:
+      type: object
+      required:
+        - cameras
+        - filters
+      properties:
+        cameras:
+          type: array
+          description: List of available camera names
+          items:
+            type: string
+          example: ["Front Door", "Back Yard", "Garage", "Living Room"]
+        filters:
+          type: object
+          description: Camera groupings for filtering
+          additionalProperties:
+            type: array
+            items:
+              type: string
+          example:
+            outdoor: ["Front Door", "Back Yard", "Garage"]
+            indoor: ["Living Room", "Kitchen"]
+            motion: ["Front Door", "Back Yard"]
+
+    EventsResponse:
+      type: object
+      required:
+        - Items
+      properties:
+        Items:
+          type: array
+          description: Array of security events
+          items:
+            $ref: '#/components/schemas/SecurityEvent'
+        LastEvaluatedKey:
+          type: object
+          description: Pagination key for retrieving next page of results
+          properties:
+            event_ts:
+              type: integer
+              format: int64
+              description: Timestamp of last event in this page
+            capture_date:
+              type: string
+              format: date
+              description: Capture date for pagination
+          example:
+            event_ts: 1640995200000
+            capture_date: "2023-12-31"
+        _mergedViewedData:
+          $ref: '#/components/schemas/ViewedVideosResponse'
+          description: Present when viewing data was auto-saved and merged
+
+    SecurityEvent:
+      type: object
+      required:
+        - object_key
+        - event_ts
+        - camera_name
+        - event_type
+      properties:
+        object_key:
+          type: string
+          description: Unique identifier for the event/video file
+          example: "cameras/front-door/2023/12/31/video_123456.mp4"
+        event_ts:
+          type: integer
+          format: int64
+          description: Event timestamp in milliseconds since epoch
+          example: 1640995200000
+        camera_name:
+          type: string
+          description: Name of the camera that captured the event
+          example: "Front Door"
+        event_type:
+          type: string
+          description: Type of detected event
+          enum: [motion, person, vehicle, package, animal]
+          example: "motion"
+        uri:
+          type: string
+          format: uri
+          description: Direct URL to access the video/image file
+          example: "https://videos.security-videos.brianandkelly.ws/cameras/front-door/2023/12/31/video_123456.mp4"
+        thumbnail_uri:
+          type: string
+          format: uri
+          description: URL to event thumbnail image
+          example: "https://thumbnails.security-videos.brianandkelly.ws/cameras/front-door/2023/12/31/thumb_123456.jpg"
+        video_name:
+          type: string
+          description: Original video filename (present for video events)
+          example: "video_123456.mp4"
+        capture_date:
+          type: string
+          format: date
+          description: Date when the video was captured (YYYY-MM-DD)
+          example: "2023-12-31"
+        duration:
+          type: number
+          format: float
+          description: Video duration in seconds
+          example: 30.5
+        file_size:
+          type: integer
+          description: File size in bytes
+          example: 2048000
+
+    ImageLabelsResponse:
+      type: object
+      required:
+        - labels
+      properties:
+        labels:
+          type: array
+          description: Array of detected labels from AWS Rekognition
+          items:
+            $ref: '#/components/schemas/RekognitionLabel'
+        image_key:
+          type: string
+          description: The analyzed image key
+          example: "cameras/front-door/2023/12/31/image_123456.jpg"
+
+    RekognitionLabel:
+      type: object
+      required:
+        - Name
+        - Confidence
+      properties:
+        Name:
+          type: string
+          description: Label name
+          example: "Person"
+        Confidence:
+          type: number
+          format: float
+          description: Confidence score (0-100)
+          example: 98.5
+        Instances:
+          type: array
+          description: Specific instances of the label with bounding boxes
+          items:
+            type: object
+            properties:
+              BoundingBox:
+                type: object
+                properties:
+                  Width:
+                    type: number
+                    format: float
+                  Height:
+                    type: number
+                    format: float
+                  Left:
+                    type: number
+                    format: float
+                  Top:
+                    type: number
+                    format: float
+              Confidence:
+                type: number
+                format: float
+        Parents:
+          type: array
+          description: Parent categories for this label
+          items:
+            type: object
+            properties:
+              Name:
+                type: string
+                example: "Human"
+
+    ViewedVideosRequest:
+      type: object
+      required:
+        - userId
+        - timestamp
+        - viewedEvents
+        - viewedVideos
+      properties:
+        userId:
+          type: string
+          format: email
+          description: User identifier
+          example: "user@brianandkelly.ws"
+        timestamp:
+          type: string
+          format: date-time
+          description: When this data was recorded on the client
+          example: "2023-12-31T23:59:59.999Z"
+        viewedEvents:
+          type: array
+          description: Array of viewed event group keys
+          items:
+            type: string
+          example: ["event1|event2", "event3"]
+        viewedVideos:
+          type: array
+          description: Array of viewed individual video object keys
+          items:
+            type: string
+          example: ["cameras/front-door/video1.mp4", "cameras/back-yard/video2.mp4"]
+
+    ViewedVideosResponse:
+      type: object
+      required:
+        - success
+        - wasMerged
+      properties:
+        success:
+          type: boolean
+          description: Whether the operation was successful
+          example: true
+        wasMerged:
+          type: boolean
+          description: Whether server data was merged with client data
+          example: true
+        viewedEvents:
+          type: array
+          description: Merged list of viewed event groups
+          items:
+            type: string
+        viewedVideos:
+          type: array
+          description: Merged list of viewed videos
+          items:
+            type: string
+        timestamp:
+          type: string
+          format: date-time
+          description: Server timestamp of the operation
+          example: "2023-12-31T23:59:59.999Z"
+
+    Error:
+      type: object
+      required:
+        - error
+      properties:
+        error:
+          type: string
+          description: Error message
+          example: "Authentication required"
+        code:
+          type: string
+          description: Error code for programmatic handling
+          example: "AUTH_REQUIRED"
+        details:
+          type: object
+          description: Additional error details
+          additionalProperties: true
+
+tags:
+  - name: Authentication
+    description: Google OAuth authentication and session management
+  - name: Cameras
+    description: Camera metadata and configuration
+  - name: Events
+    description: Security event retrieval and filtering
+  - name: Image Analysis
+    description: AWS Rekognition image analysis
+  - name: User Preferences
+    description: User viewing history and preferences
