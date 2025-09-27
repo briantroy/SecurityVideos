@@ -1,4 +1,4 @@
-const CACHE_NAME = 'security-videos-cache-v6'; // Increment this on each deployment
+const CACHE_NAME = 'security-videos-cache-v7'; // Increment this on each deployment
 const urlsToCache = [
   '/',
   '/index.html',
