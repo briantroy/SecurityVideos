@@ -109,23 +109,44 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
 
         let date = dateArg !== undefined ? dateArg : videoDate;
         let zeroTries = zeroTriesArg !== undefined ? zeroTriesArg : zeroEntryCount;
-        if (scope.startsWith('filter:')) {
+        if (scope.startsWith('filter:') || scope.startsWith('search:')) {
             videoDateRef.current = date;
         }
 
+        // Handle search scope
+        let actualScope = scope;
+        let searchDateTime = null;
+        if (scope.startsWith('search:')) {
+            const timestamp = parseInt(scope.replace('search:', ''));
+            searchDateTime = new Date(timestamp);
+            // For search, determine the actual scope based on current scope or default to 'latest'
+            const storedScope = localStorage.getItem('lastNonSearchScope');
+            actualScope = storedScope || 'latest';
+        } else {
+            // Store non-search scope for later use
+            localStorage.setItem('lastNonSearchScope', scope);
+        }
+
         // Always use local date in YYYY-MM-DD
-        const formattedDate = date.toLocaleDateString('en-CA');
+        const formattedDate = (searchDateTime || date).toLocaleDateString('en-CA');
         const options = {
-            num_results: scope.startsWith('filter:') ? 50 : 50,
+            num_results: actualScope.startsWith('filter:') ? 50 : 50,
         };
+
         // After first request, ALWAYS use values from last response
         if (loadMore && lastKey) {
             if (lastKey.event_ts) options.older_than_ts = lastKey.event_ts;
             if (lastKey.capture_date) options.video_date = lastKey.capture_date;
         } else {
-            // Initial request can optionally provide today's date for latest/filter
-            if (scope === 'latest' || scope.startsWith('filter:')) {
+            // For search, use the search date and time
+            if (searchDateTime) {
                 options.video_date = formattedDate;
+                options.older_than_ts = searchDateTime.getTime();
+            } else {
+                // Initial request can optionally provide today's date for latest/filter
+                if (actualScope === 'latest' || actualScope.startsWith('filter:')) {
+                    options.video_date = formattedDate;
+                }
             }
         }
 
@@ -136,7 +157,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
             viewedVideos: seenVideos
         } : null;
 
-        getEvents(scope, options, viewedData)
+        getEvents(actualScope, options, viewedData)
             .then(data => {
                 if (viewKeyRef.current !== viewKey) {
                     loadingRef.current = false;
@@ -178,7 +199,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
                 // 4. Always append new events
                 if (viewKeyRef.current !== viewKey) return; // Only update if view matches
                 setEvents(prevEvents => loadMore ? [...prevEvents, ...data.Items] : data.Items);
-                const incomingGroupsRaw = (scope === 'latest')
+                const incomingGroupsRaw = (actualScope === 'latest')
                     ? data.Items.map(event => [event])
                     : groupEvents(data.Items);
 
@@ -261,6 +282,14 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
         const newerThanTs = firstEventTsByScope[scope];
         if (!newerThanTs) return; // nothing to fetch
         setRefreshing(true);
+
+        // Handle search scope
+        let actualScope = scope;
+        if (scope.startsWith('search:')) {
+            const storedScope = localStorage.getItem('lastNonSearchScope');
+            actualScope = storedScope || 'latest';
+        }
+
         // Animate button as if clicked
         if (pulldownButtonRef.current) {
             pulldownButtonRef.current.classList.add('auto-refreshing');
@@ -271,10 +300,10 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
             }, 1200);
         }
         const options = {
-            num_results: scope.startsWith('filter:') ? 100 : 50,
+            num_results: actualScope.startsWith('filter:') ? 100 : 50,
             newer_than_ts: newerThanTs,
         };
-        if (scope === 'latest' || scope.startsWith('filter:')) {
+        if (actualScope === 'latest' || actualScope.startsWith('filter:')) {
             options.video_date = formattedDate;
         }
         // Prepare viewed data for auto-saving
@@ -284,7 +313,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
             viewedVideos: seenVideos
         } : null;
         
-        getEvents(scope, options, viewedData)
+        getEvents(actualScope, options, viewedData)
             .then(data => {
                 // Handle merged viewed data from server
                 if (data._mergedViewedData && data._mergedViewedData.wasMerged) {
@@ -304,7 +333,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
                     setFirstEventTsByScope(prev => ({ ...prev, [scope]: invertedItems[0].event_ts }));
                     // Prepend new events to the timeline in correct order
                     setEvents(prev => [...invertedItems, ...prev]);
-                    const incomingGroupsRaw = (scope === 'latest')
+                    const incomingGroupsRaw = (actualScope === 'latest')
                         ? invertedItems.map(event => [event])
                         : groupEvents(invertedItems);
                     const batchSeen = new Set();
@@ -369,7 +398,13 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
                     
                     // For 'latest' scope (ungrouped), check individual video views
                     // For other scopes (grouped), check group views
-                    const isSeen = scope === 'latest' 
+                    // Handle search scope by using the actual scope for grouping logic
+                    let actualScopeForGrouping = scope;
+                    if (scope.startsWith('search:')) {
+                        const storedScope = localStorage.getItem('lastNonSearchScope');
+                        actualScopeForGrouping = storedScope || 'latest';
+                    }
+                    const isSeen = actualScopeForGrouping === 'latest'
                         ? group.every(event => seenVideos.includes(event.object_key))
                         : seenGroups.includes(key);
                     

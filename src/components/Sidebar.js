@@ -2,6 +2,8 @@ import React, { useState, useEffect } from 'react';
 
 function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onToggle, currentScope, userToken }) {
     const [localUser, setLocalUser] = useState(null);
+    const [searchDate, setSearchDate] = useState('');
+    const [searchTime, setSearchTime] = useState('');
 
     // Load user from localStorage and keep it synced
     useEffect(() => {
@@ -25,6 +27,32 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
             window.removeEventListener('storage', loadUserFromStorage);
         };
     }, []);
+
+    // Initialize date/time picker with current date/time or search scope values
+    useEffect(() => {
+        if (currentScope.startsWith('search:')) {
+            // If we're in search mode, set the inputs to the search date/time
+            const timestamp = parseInt(currentScope.replace('search:', ''));
+            const searchDateTime = new Date(timestamp);
+            setSearchDate(searchDateTime.toLocaleDateString('en-CA')); // YYYY-MM-DD format
+            setSearchTime(searchDateTime.toTimeString().slice(0, 5)); // HH:MM format
+        } else {
+            // Default to current date/time
+            const now = new Date();
+            setSearchDate(now.toLocaleDateString('en-CA')); // YYYY-MM-DD format
+            setSearchTime(now.toTimeString().slice(0, 5)); // HH:MM format
+        }
+    }, [currentScope]);
+
+    // Determine the actual view context for highlighting
+    const getActiveScope = () => {
+        if (currentScope.startsWith('search:')) {
+            return localStorage.getItem('lastNonSearchScope') || 'latest';
+        }
+        return currentScope;
+    };
+
+    const activeScope = getActiveScope();
 
     // Use localStorage user or fallback to prop user
     const displayUser = localUser || user;
@@ -56,9 +84,39 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
             </div>
 
             <nav className="sidebar-nav">
+                <h4>Date/Time Search</h4>
+                <div className="date-time-search">
+                    <div className="search-inputs">
+                        <input
+                            type="date"
+                            className="search-date-input"
+                            value={searchDate}
+                            onChange={(e) => setSearchDate(e.target.value)}
+                        />
+                        <input
+                            type="time"
+                            className="search-time-input"
+                            value={searchTime}
+                            onChange={(e) => setSearchTime(e.target.value)}
+                        />
+                    </div>
+                    <button
+                        className="search-button"
+                        onClick={() => {
+                            if (searchDate && searchTime) {
+                                const searchDateTime = new Date(`${searchDate}T${searchTime}`);
+                                const searchScope = `search:${searchDateTime.getTime()}`;
+                                onSelectScope(searchScope);
+                            }
+                        }}
+                    >
+                        Search Videos
+                    </button>
+                </div>
+
                 <h4>Views</h4>
                 <ul>
-                    <li className={currentScope === 'latest' ? 'active' : ''}>
+                    <li className={activeScope === 'latest' ? 'active' : ''}>
                         <button onClick={() => onSelectScope('latest')}>
                             Latest Events
                         </button>
@@ -70,7 +128,7 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
                         <h4>Groups</h4>
                         <ul>
                             {groups.map(group => (
-                                <li key={group} className={currentScope === `filter:${group}` ? 'active' : ''}>
+                                <li key={group} className={activeScope === `filter:${group}` ? 'active' : ''}>
                                     <button onClick={() => onSelectScope(`filter:${group}`)}>
                                         {group}
                                     </button>
@@ -85,7 +143,7 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
                         <h4>Cameras</h4>
                         <ul>
                             {cameras.map(camera => (
-                                <li key={camera} className={currentScope === camera ? 'active' : ''}>
+                                <li key={camera} className={activeScope === camera ? 'active' : ''}>
                                     <button onClick={() => onSelectScope(camera)}>
                                         {camera}
                                     </button>

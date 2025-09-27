@@ -203,7 +203,14 @@ function App() {
                 <main ref={mainContentRef} className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
                     <header className="main-header">
                         <h1>
-                            {currentScope.startsWith('filter:') ? `Group: ${currentScope.substring(7)}` :
+                            {currentScope.startsWith('search:') ? (() => {
+                                const searchDate = new Date(parseInt(currentScope.replace('search:', '')));
+                                const lastScope = localStorage.getItem('lastNonSearchScope') || 'latest';
+                                const scopeLabel = lastScope.startsWith('filter:') ? `Group: ${lastScope.substring(7)}` :
+                                                  lastScope === 'latest' ? 'Latest Events' : `Camera: ${lastScope}`;
+                                return `${scopeLabel} - Search: ${searchDate.toLocaleString()}`;
+                            })() :
+                             currentScope.startsWith('filter:') ? `Group: ${currentScope.substring(7)}` :
                              currentScope === 'latest' ? 'Latest Events' : `Camera: ${currentScope}`}
                         </h1>
                     </header>
