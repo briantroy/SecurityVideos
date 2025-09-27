@@ -4,6 +4,7 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
     const [localUser, setLocalUser] = useState(null);
     const [searchDate, setSearchDate] = useState('');
     const [searchTime, setSearchTime] = useState('');
+    const [isDateSearchCollapsed, setIsDateSearchCollapsed] = useState(true);
 
     // Load user from localStorage and keep it synced
     useEffect(() => {
@@ -31,11 +32,12 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
     // Initialize date/time picker with current date/time or search scope values
     useEffect(() => {
         if (currentScope.startsWith('search:')) {
-            // If we're in search mode, set the inputs to the search date/time
+            // If we're in search mode, set the inputs to the search date/time and expand
             const timestamp = parseInt(currentScope.replace('search:', ''));
             const searchDateTime = new Date(timestamp);
             setSearchDate(searchDateTime.toLocaleDateString('en-CA')); // YYYY-MM-DD format
             setSearchTime(searchDateTime.toTimeString().slice(0, 5)); // HH:MM format
+            setIsDateSearchCollapsed(false); // Auto-expand when in search mode
         } else {
             // Default to current date/time
             const now = new Date();
@@ -84,34 +86,44 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
             </div>
 
             <nav className="sidebar-nav">
-                <h4>Date/Time Search</h4>
-                <div className="date-time-search">
-                    <div className="search-inputs">
-                        <input
-                            type="date"
-                            className="search-date-input"
-                            value={searchDate}
-                            onChange={(e) => setSearchDate(e.target.value)}
-                        />
-                        <input
-                            type="time"
-                            className="search-time-input"
-                            value={searchTime}
-                            onChange={(e) => setSearchTime(e.target.value)}
-                        />
-                    </div>
-                    <button
-                        className="search-button"
-                        onClick={() => {
-                            if (searchDate && searchTime) {
-                                const searchDateTime = new Date(`${searchDate}T${searchTime}`);
-                                const searchScope = `search:${searchDateTime.getTime()}`;
-                                onSelectScope(searchScope);
-                            }
-                        }}
+                <div className="collapsible-section">
+                    <h4
+                        className="collapsible-header"
+                        onClick={() => setIsDateSearchCollapsed(!isDateSearchCollapsed)}
                     >
-                        Search Videos
-                    </button>
+                        Date/Time Search
+                        <span className={`collapse-icon ${isDateSearchCollapsed ? 'collapsed' : 'expanded'}`}>
+                            ▼
+                        </span>
+                    </h4>
+                    <div className={`date-time-search ${isDateSearchCollapsed ? 'collapsed' : 'expanded'}`}>
+                        <div className="search-inputs">
+                            <input
+                                type="date"
+                                className="search-date-input"
+                                value={searchDate}
+                                onChange={(e) => setSearchDate(e.target.value)}
+                            />
+                            <input
+                                type="time"
+                                className="search-time-input"
+                                value={searchTime}
+                                onChange={(e) => setSearchTime(e.target.value)}
+                            />
+                        </div>
+                        <button
+                            className="search-button"
+                            onClick={() => {
+                                if (searchDate && searchTime) {
+                                    const searchDateTime = new Date(`${searchDate}T${searchTime}`);
+                                    const searchScope = `search:${searchDateTime.getTime()}`;
+                                    onSelectScope(searchScope);
+                                }
+                            }}
+                        >
+                            Search Videos
+                        </button>
+                    </div>
                 </div>
 
                 <h4>Views</h4>

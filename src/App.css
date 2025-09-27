@@ -670,11 +670,57 @@ html, body {
   background-color: #c0392b;
 }
 
+/* Collapsible Section Styles */
+.collapsible-section {
+  border-bottom: 1px solid #34495e;
+  margin-bottom: 15px;
+}
+
+.collapsible-header {
+  padding: 0 20px 10px 20px;
+  margin: 15px 0 0 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  cursor: pointer;
+  transition: color 0.2s ease;
+  user-select: none;
+}
+
+.collapsible-header:hover {
+  color: #3498db;
+}
+
+.collapse-icon {
+  font-size: 0.8rem;
+  transition: transform 0.3s ease;
+  color: #95a5a6;
+}
+
+.collapse-icon.collapsed {
+  transform: rotate(-90deg);
+}
+
+.collapse-icon.expanded {
+  transform: rotate(0deg);
+}
+
 /* Date/Time Search Styles */
 .date-time-search {
   padding: 0 20px 15px 20px;
-  border-bottom: 1px solid #34495e;
-  margin-bottom: 15px;
+  overflow: hidden;
+  transition: max-height 0.3s ease, opacity 0.3s ease;
+}
+
+.date-time-search.collapsed {
+  max-height: 0;
+  opacity: 0;
+  padding: 0 20px;
+}
+
+.date-time-search.expanded {
+  max-height: 200px;
+  opacity: 1;
 }
 
 .search-inputs {
@@ -722,6 +768,96 @@ html, body {
 
 .search-button:active {
   background-color: #1e8449;
+}
+
+/* Offline Video Popup Styles */
+.popup-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: rgba(0, 0, 0, 0.5);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 9999;
+}
+
+.popup-content {
+  background: white;
+  border-radius: 8px;
+  box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+  max-width: 450px;
+  width: 90%;
+  max-height: 90vh;
+  overflow-y: auto;
+}
+
+.popup-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 20px 20px 0 20px;
+  border-bottom: 1px solid #e1e1e1;
+}
+
+.popup-header h3 {
+  margin: 0;
+  color: #e74c3c;
+  font-size: 1.2rem;
+}
+
+.popup-close {
+  background: none;
+  border: none;
+  font-size: 1.5rem;
+  cursor: pointer;
+  color: #999;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.popup-close:hover {
+  color: #333;
+}
+
+.popup-body {
+  padding: 20px;
+  line-height: 1.5;
+}
+
+.popup-body p {
+  margin: 0 0 15px 0;
+  color: #333;
+}
+
+.popup-body p:last-child {
+  margin-bottom: 0;
+}
+
+.popup-footer {
+  padding: 0 20px 20px 20px;
+  text-align: right;
+}
+
+.popup-button {
+  background-color: #3498db;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  padding: 10px 20px;
+  cursor: pointer;
+  font-size: 1rem;
+  transition: background-color 0.2s ease;
+}
+
+.popup-button:hover {
+  background-color: #2980b9;
 }
 
 /* Login Container */

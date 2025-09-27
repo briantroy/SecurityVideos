@@ -140,7 +140,10 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
         } else {
             // For search, use the search date and time
             if (searchDateTime) {
-                options.video_date = formattedDate;
+                // Only send video_date for latest/filter, NEVER for single cameras
+                if (actualScope === 'latest' || actualScope.startsWith('filter:')) {
+                    options.video_date = formattedDate;
+                }
                 options.older_than_ts = searchDateTime.getTime();
             } else {
                 // Initial request can optionally provide today's date for latest/filter
@@ -277,18 +280,23 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
 
     // Pull-to-refresh handler
     const handlePullDown = () => {
-        const today = new Date();
-        const formattedDate = today.toLocaleDateString('en-CA');
         const newerThanTs = firstEventTsByScope[scope];
         if (!newerThanTs) return; // nothing to fetch
         setRefreshing(true);
 
         // Handle search scope
         let actualScope = scope;
+        let searchDate = null;
         if (scope.startsWith('search:')) {
+            const timestamp = parseInt(scope.replace('search:', ''));
+            searchDate = new Date(timestamp);
             const storedScope = localStorage.getItem('lastNonSearchScope');
             actualScope = storedScope || 'latest';
         }
+
+        // Use search date if we're in search mode, otherwise use today
+        const dateToUse = searchDate || new Date();
+        const formattedDate = dateToUse.toLocaleDateString('en-CA');
 
         // Animate button as if clicked
         if (pulldownButtonRef.current) {
@@ -303,6 +311,7 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
             num_results: actualScope.startsWith('filter:') ? 100 : 50,
             newer_than_ts: newerThanTs,
         };
+        // Only send video_date for latest/filter, NEVER for single cameras
         if (actualScope === 'latest' || actualScope.startsWith('filter:')) {
             options.video_date = formattedDate;
         }

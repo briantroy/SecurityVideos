@@ -8,6 +8,29 @@ import { getCameraList } from './api';
 import { API_HOST } from './api';
 import './App.css';
 
+// Offline Video Popup Component
+const OfflineVideoPopup = ({ isVisible, onClose }) => {
+    if (!isVisible) return null;
+
+    return (
+        <div className="popup-overlay" onClick={onClose}>
+            <div className="popup-content" onClick={(e) => e.stopPropagation()}>
+                <div className="popup-header">
+                    <h3>Video Not Available</h3>
+                    <button className="popup-close" onClick={onClose}>×</button>
+                </div>
+                <div className="popup-body">
+                    <p>This video has been moved to offline storage and is no longer available for online viewing.</p>
+                    <p>Please try searching for a more recent date or contact your administrator if you need access to this content.</p>
+                </div>
+                <div className="popup-footer">
+                    <button className="popup-button" onClick={onClose}>OK</button>
+                </div>
+            </div>
+        </div>
+    );
+};
+
 const GOOGLE_CLIENT_ID = "522648161569-735fsdpk8vf40tl854ktv0kg9629hn8d.apps.googleusercontent.com";
 const GOOGLE_DOMAIN_ALLOWED = "brianandkelly.ws";
 
@@ -33,6 +56,8 @@ function App() {
     const mainContentRef = useRef(null);
     // Lift selectedMedia state to App.js
     const [selectedMedia, setSelectedMedia] = useState(null);
+    // Offline video popup state
+    const [showOfflineVideoPopup, setShowOfflineVideoPopup] = useState(false);
 
     // Auto-close sidebar on iPhone screen sizes
     useEffect(() => {
@@ -225,11 +250,18 @@ function App() {
                             />
                         </div>
                         <div className="media-viewer-panel">
-                            <MediaViewer event={selectedMedia} />
+                            <MediaViewer
+                                event={selectedMedia}
+                                onOfflineVideoError={() => setShowOfflineVideoPopup(true)}
+                            />
                         </div>
                     </div>
                 </main>
             </div>
+            <OfflineVideoPopup
+                isVisible={showOfflineVideoPopup}
+                onClose={() => setShowOfflineVideoPopup(false)}
+            />
         </GoogleOAuthProvider>
     );
 }

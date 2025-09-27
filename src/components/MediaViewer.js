@@ -3,7 +3,7 @@ import React, { useState, useEffect, useRef } from 'react';
 const VOLUME_KEY = 'mediaViewerVolume';
 const MUTE_KEY = 'mediaViewerMuted';
 
-const MediaViewer = ({ event: eventGroup }) => {
+const MediaViewer = ({ event: eventGroup, onOfflineVideoError }) => {
     const [currentIndex, setCurrentIndex] = useState(0);
     const videoRef = useRef(null);
     // Local state for UI sync
@@ -55,6 +55,49 @@ const MediaViewer = ({ event: eventGroup }) => {
         localStorage.setItem(MUTE_KEY, video.muted);
     };
 
+    // Handle video load errors (403 = offline storage)
+    const handleVideoError = (e) => {
+        const video = e.target;
+        // Check if the error is likely a 403 (forbidden) - indicating offline storage
+        if (video.error && (video.error.code === video.error.MEDIA_ERR_SRC_NOT_SUPPORTED || video.error.code === video.error.MEDIA_ERR_NETWORK)) {
+            // Make a test request to check the actual HTTP status
+            fetch(video.src, { method: 'HEAD' })
+                .then(response => {
+                    if (response.status === 403) {
+                        if (onOfflineVideoError) {
+                            onOfflineVideoError();
+                        }
+                    }
+                })
+                .catch(() => {
+                    // If fetch fails, also assume it might be a 403 and show popup
+                    if (onOfflineVideoError) {
+                        onOfflineVideoError();
+                    }
+                });
+        }
+    };
+
+    // Handle image load errors
+    const handleImageError = (e) => {
+        const img = e.target;
+        // Make a test request to check the actual HTTP status
+        fetch(img.src, { method: 'HEAD' })
+            .then(response => {
+                if (response.status === 403) {
+                    if (onOfflineVideoError) {
+                        onOfflineVideoError();
+                    }
+                }
+            })
+            .catch(() => {
+                // If fetch fails, also assume it might be a 403 and show popup
+                if (onOfflineVideoError) {
+                    onOfflineVideoError();
+                }
+            });
+    };
+
     if (!Array.isArray(eventGroup) || eventGroup.length === 0) {
         return null;
     }
@@ -88,7 +131,7 @@ const MediaViewer = ({ event: eventGroup }) => {
             </div>
             <div className="media-container">
                 {currentEvent.video_name ? (
-                    <video 
+                    <video
                         ref={videoRef}
                         src={currentEvent.uri}
                         controls
@@ -98,9 +141,15 @@ const MediaViewer = ({ event: eventGroup }) => {
                         playsInline
                         webkit-playsinline="true"
                         onVolumeChange={handleVolumeChange}
+                        onError={handleVideoError}
                     />
                 ) : (
-                    <img src={currentEvent.uri} alt={`Event from ${currentEvent.camera_name || 'camera'}`} className="image-embed" />
+                    <img
+                        src={currentEvent.uri}
+                        alt={`Event from ${currentEvent.camera_name || 'camera'}`}
+                        className="image-embed"
+                        onError={handleImageError}
+                    />
                 )}
             </div>
         </div>
