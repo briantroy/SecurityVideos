@@ -272,9 +272,12 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
             setSeenGroups(newSeenGroups);
             localStorage.setItem('viewedEvents', JSON.stringify(newSeenGroups));
         }
+        // Always create a new array to trigger re-render even if same event is clicked
         const newSelectedMedia = [...eventGroup];
         newSelectedMedia.autoplay = true;
-        newSelectedMedia.markVideoAsViewed = markVideoAsViewed; // Pass the function
+        newSelectedMedia.markVideoAsViewed = markVideoAsViewed;
+        // Add a unique timestamp to force re-render when clicking the same event
+        newSelectedMedia._clickTime = Date.now();
         setSelectedMedia(newSelectedMedia);
     };
 

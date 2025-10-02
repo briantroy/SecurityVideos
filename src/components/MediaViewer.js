@@ -18,6 +18,12 @@ const MediaViewer = ({ event: eventGroup, onOfflineVideoError }) => {
 
     useEffect(() => {
         setCurrentIndex(0);
+        // If autoplay is enabled, play the video
+        if (eventGroup?.autoplay && videoRef.current) {
+            videoRef.current.play().catch(err => {
+                console.log('Autoplay prevented:', err);
+            });
+        }
     }, [eventGroup]);
 
     // Mark current video as viewed when it's displayed
