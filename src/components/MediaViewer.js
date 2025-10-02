@@ -19,10 +19,13 @@ const MediaViewer = ({ event: eventGroup, onOfflineVideoError }) => {
     useEffect(() => {
         setCurrentIndex(0);
         // If autoplay is enabled, play the video
-        if (eventGroup?.autoplay && videoRef.current) {
-            videoRef.current.play().catch(err => {
-                console.log('Autoplay prevented:', err);
-            });
+        if (eventGroup?.autoplay) {
+            const timer = setTimeout(() => {
+                videoRef.current?.play().catch(err => {
+                    console.log('Autoplay prevented:', err);
+                });
+            }, 100);
+            return () => clearTimeout(timer);
         }
     }, [eventGroup]);
 
@@ -51,6 +54,50 @@ const MediaViewer = ({ event: eventGroup, onOfflineVideoError }) => {
             video.muted = muted;
         }
     }, [currentIndex, eventGroup, volume, muted]);
+
+    // Handler for when video ends
+    const handleVideoEnded = () => {
+        // Always advance to next video if there are more videos in the group
+        if (eventGroup && currentIndex < eventGroup.length - 1) {
+            setCurrentIndex(prevIndex => prevIndex + 1);
+        }
+    };
+
+    // Handle time update to check if video is stuck near the end
+    const handleTimeUpdate = (e) => {
+        const video = e.target;
+        if (video.duration > 0 && !isNaN(video.duration)) {
+            const timeRemaining = video.duration - video.currentTime;
+            // If we're within 1 second of the end, consider it done
+            if (timeRemaining < 1 && timeRemaining > 0) {
+                // Check if we're actually at the end or stuck
+                if (video.paused || video.ended) {
+                    handleVideoEnded();
+                }
+            }
+        }
+    };
+
+    // Explicitly play video when index changes (for subsequent videos in a group)
+    useEffect(() => {
+        if (currentIndex === 0) return;
+
+        // Wait for video element to be ready
+        const attemptPlay = () => {
+            const video = videoRef.current;
+            if (video) {
+                video.play().catch(err => {
+                    console.log('Autoplay prevented:', err);
+                });
+            }
+        };
+
+        // Try immediately and with a delay as backup
+        attemptPlay();
+        const timer = setTimeout(attemptPlay, 100);
+
+        return () => clearTimeout(timer);
+    }, [currentIndex]);
 
     // Save volume/mute changes to localStorage
     const handleVolumeChange = (e) => {
@@ -139,15 +186,18 @@ const MediaViewer = ({ event: eventGroup, onOfflineVideoError }) => {
                 {currentEvent.video_name ? (
                     <video
                         ref={videoRef}
+                        key={`${currentEvent.object_key}-${currentIndex}`}
                         src={currentEvent.uri}
                         controls
-                        preload="auto"
-                        autoPlay={eventGroup.autoplay}
+                        preload="metadata"
+                        autoPlay={eventGroup?.autoplay || false}
                         className="video-embed"
                         playsInline
                         webkit-playsinline="true"
                         onVolumeChange={handleVolumeChange}
                         onError={handleVideoError}
+                        onEnded={handleVideoEnded}
+                        onTimeUpdate={handleTimeUpdate}
                     />
                 ) : (
                     <img
