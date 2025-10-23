@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import EventCard from './EventCard';
 import MediaViewer from './MediaViewer';
-import { getEvents } from '../api';
+import { getEvents, markVideoAsViewed as apiMarkVideoAsViewed, markEventAsViewed as apiMarkEventAsViewed } from '../api';
 
 const groupEvents = (events) => {
     if (events.length === 0) {
@@ -254,16 +254,22 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
 
     const makeGroupKey = useCallback((group) => group.map(e => e.object_key).sort().join('|'), []);
 
-    const markVideoAsViewed = useCallback((objectKey) => {
+    const markVideoAsViewed = useCallback((objectKey, timestamp) => {
         setSeenVideos(prevSeenVideos => {
             if (!prevSeenVideos.includes(objectKey)) {
                 const newSeenVideos = [...prevSeenVideos, objectKey];
                 localStorage.setItem('viewedVideos', JSON.stringify(newSeenVideos));
+
+                // Call API to mark video as viewed
+                if (user && user.email) {
+                    apiMarkVideoAsViewed(user.email, objectKey, timestamp);
+                }
+
                 return newSeenVideos;
             }
             return prevSeenVideos;
         });
-    }, []); // Remove seenVideos dependency to avoid stale closure
+    }, [user]); // Add user dependency
 
     const handleSelectMedia = (eventGroup) => {
         const key = makeGroupKey(eventGroup);
@@ -271,6 +277,14 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
             const newSeenGroups = [...seenGroups, key];
             setSeenGroups(newSeenGroups);
             localStorage.setItem('viewedEvents', JSON.stringify(newSeenGroups));
+
+            // Call API to mark event as viewed
+            // Get the timestamp of the first event in the group
+            if (user && user.email && eventGroup.length > 0) {
+                const firstEvent = eventGroup[0];
+                const timestamp = new Date(firstEvent.event_ts).toISOString();
+                apiMarkEventAsViewed(user.email, key, timestamp);
+            }
         }
         // Always create a new array to trigger re-render even if same event is clicked
         const newSelectedMedia = [...eventGroup];

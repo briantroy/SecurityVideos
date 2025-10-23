@@ -34,7 +34,8 @@ const MediaViewer = ({ event: eventGroup, onOfflineVideoError }) => {
         if (Array.isArray(eventGroup) && eventGroup.length > 0 && eventGroup.markVideoAsViewed) {
             const currentEvent = eventGroup[currentIndex] ?? eventGroup[0];
             if (currentEvent && currentEvent.object_key) {
-                eventGroup.markVideoAsViewed(currentEvent.object_key);
+                const timestamp = new Date(currentEvent.event_ts).toISOString();
+                eventGroup.markVideoAsViewed(currentEvent.object_key, timestamp);
             }
         }
     }, [currentIndex, eventGroup]);

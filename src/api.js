@@ -100,7 +100,7 @@ export const getImageLabels = (imageKey) => {
  */
 export const saveViewedVideos = async (userId, viewedEvents, viewedVideos) => {
     const url = `${API_HOST}/viewed-videos/${encodeURIComponent(userId)}`;
-    
+
     const payload = {
         userId,
         timestamp: new Date().toISOString(),
@@ -124,4 +124,80 @@ export const saveViewedVideos = async (userId, viewedEvents, viewedVideos) => {
     }
 
     return response.json();
+};
+
+/**
+ * Marks a video as viewed (async, fire-and-forget).
+ * @param {string} userId - The user identifier.
+ * @param {string} videoId - The video's object key.
+ * @param {string} timestamp - The video's timestamp from the API.
+ * @returns {Promise<void>} - Resolves when the request is sent (doesn't wait for response).
+ */
+export const markVideoAsViewed = async (userId, videoId, timestamp) => {
+    const url = `${API_HOST}/viewed-videos/${encodeURIComponent(userId)}`;
+
+    const payload = {
+        videoId,
+        timestamp,
+        viewedTimestamp: new Date().toISOString()
+    };
+
+    // Fire and forget, but log detailed errors for debugging
+    fetch(url, {
+        method: 'PUT',
+        credentials: 'include', // Send httpOnly JWT cookie
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.warn(`Mark video as viewed failed: ${response.status} ${response.statusText}`);
+            console.warn('Response body:', errorText);
+            console.warn('Payload sent:', payload);
+        }
+    })
+    .catch(err => {
+        console.warn('Failed to mark video as viewed:', err);
+    });
+};
+
+/**
+ * Marks an event as viewed (async, fire-and-forget).
+ * @param {string} userId - The user identifier.
+ * @param {string} eventId - The event's group key.
+ * @param {string} timestamp - The timestamp of the first event in the group.
+ * @returns {Promise<void>} - Resolves when the request is sent (doesn't wait for response).
+ */
+export const markEventAsViewed = async (userId, eventId, timestamp) => {
+    const url = `${API_HOST}/viewed-videos/${encodeURIComponent(userId)}`;
+
+    const payload = {
+        eventId,
+        timestamp,
+        viewedTimestamp: new Date().toISOString()
+    };
+
+    // Fire and forget, but log detailed errors for debugging
+    fetch(url, {
+        method: 'PUT',
+        credentials: 'include', // Send httpOnly JWT cookie
+        headers: {
+            'Content-Type': 'application/json'
+        },
+        body: JSON.stringify(payload)
+    })
+    .then(async response => {
+        if (!response.ok) {
+            const errorText = await response.text();
+            console.warn(`Mark event as viewed failed: ${response.status} ${response.statusText}`);
+            console.warn('Response body:', errorText);
+            console.warn('Payload sent:', payload);
+        }
+    })
+    .catch(err => {
+        console.warn('Failed to mark event as viewed:', err);
+    });
 };
