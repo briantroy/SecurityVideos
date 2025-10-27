@@ -192,45 +192,78 @@ curl -X GET "https://api.security-videos.brianandkelly.ws/v4/image/labels?image-
 
 ## User Viewing History
 
-### Save Viewing History
+### Get Viewing History (GET)
+
 ```bash
-curl -X POST "https://api.security-videos.brianandkelly.ws/v4/viewed-videos/john.doe%40brianandkelly.ws" \
+curl -X GET "https://api.security-videos.brianandkelly.ws/v4/viewed-videos/john.doe%40brianandkelly.ws" \
+  --cookie cookies.txt
+```
+
+**Response (200 OK):**
+```json
+{
+  "userId": "john.doe@brianandkelly.ws",
+  "timestamp": "2025-01-27T14:35:22.000Z",
+  "viewedEvents": [
+    "events/2025/01/27/front-door-motion-123.mp4",
+    "events/2025/01/26/garage-door-456.mp4",
+    "event-789"
+  ],
+  "viewedVideos": [
+    "videos/2025/01/27/driveway-cam-001.mp4",
+    "videos/2025/01/26/backyard-cam-002.mp4",
+    "video-abc123"
+  ],
+  "viewedEventsCount": 3,
+  "viewedVideosCount": 3
+}
+```
+
+**Response (404 Not Found - User hasn't viewed anything yet):**
+```json
+{
+  "error": "User not found",
+  "userId": "john.doe@brianandkelly.ws"
+}
+```
+
+### Mark Video as Viewed (PUT)
+
+```bash
+curl -X PUT "https://api.security-videos.brianandkelly.ws/v4/viewed-videos/john.doe%40brianandkelly.ws" \
   -H "Content-Type: application/json" \
   --cookie cookies.txt \
   -d '{
-    "userId": "john.doe@brianandkelly.ws",
-    "timestamp": "2023-12-31T23:59:59.999Z",
-    "viewedEvents": [
-      "cameras/front-door/video1.mp4|cameras/front-door/video2.mp4",
-      "cameras/back-yard/video3.mp4"
-    ],
-    "viewedVideos": [
-      "cameras/front-door/video1.mp4",
-      "cameras/front-door/video2.mp4",
-      "cameras/back-yard/video3.mp4",
-      "cameras/garage/video4.mp4"
-    ]
+    "videoId": "cameras/front-door/2025/01/27/video_20250127_143522.mp4",
+    "timestamp": "2025-01-27T14:35:22.000Z",
+    "viewedTimestamp": "2025-01-27T14:36:00.000Z"
   }'
 ```
 
 **Response:**
 ```json
 {
-  "success": true,
-  "wasMerged": true,
-  "viewedEvents": [
-    "cameras/front-door/video1.mp4|cameras/front-door/video2.mp4",
-    "cameras/back-yard/video3.mp4",
-    "cameras/kitchen/video5.mp4"
-  ],
-  "viewedVideos": [
-    "cameras/front-door/video1.mp4",
-    "cameras/front-door/video2.mp4",
-    "cameras/back-yard/video3.mp4",
-    "cameras/garage/video4.mp4",
-    "cameras/kitchen/video5.mp4"
-  ],
-  "timestamp": "2023-12-31T23:59:59.999Z"
+  "success": true
+}
+```
+
+### Mark Event as Viewed (PUT)
+
+```bash
+curl -X PUT "https://api.security-videos.brianandkelly.ws/v4/viewed-videos/john.doe%40brianandkelly.ws" \
+  -H "Content-Type: application/json" \
+  --cookie cookies.txt \
+  -d '{
+    "eventId": "events/2025/01/27/front-door-motion-123.mp4",
+    "timestamp": "2025-01-27T14:35:22.000Z",
+    "viewedTimestamp": "2025-01-27T14:36:00.000Z"
+  }'
+```
+
+**Response:**
+```json
+{
+  "success": true
 }
 ```
 
@@ -302,38 +335,123 @@ fetchEvents('Front Door', { num_results: 5 });
 fetchEvents('filter:outdoor', { video_date: '2023-12-31' });
 ```
 
-### Save Viewing History
-```javascript
-const saveViewingHistory = async (userId, viewedEvents, viewedVideos) => {
-  const url = `https://api.security-videos.brianandkelly.ws/v4/viewed-videos/${encodeURIComponent(userId)}`;
+### Get Viewing History (JavaScript)
 
-  const payload = {
-    userId,
-    timestamp: new Date().toISOString(),
-    viewedEvents,
-    viewedVideos
-  };
+```javascript
+const getViewingHistory = async (userId) => {
+  const url = `https://api.security-videos.brianandkelly.ws/v4/viewed-videos/${encodeURIComponent(userId)}`;
 
   try {
     const response = await fetch(url, {
-      method: 'POST',
+      method: 'GET',
       credentials: 'include',
       headers: {
         'Content-Type': 'application/json'
-      },
-      body: JSON.stringify(payload)
+      }
     });
 
+    // Handle 404 as "no viewed data yet" - this is expected for new users
+    if (response.status === 404) {
+      return null;
+    }
+
     if (!response.ok) {
-      throw new Error(`Save failed with status: ${response.status}`);
+      throw new Error(`Get failed with status: ${response.status}`);
     }
 
     return await response.json();
   } catch (error) {
-    console.error('Failed to save viewing history:', error);
+    console.error('Failed to get viewing history:', error);
     throw error;
   }
 };
+
+// Usage
+const viewedData = await getViewingHistory('john.doe@brianandkelly.ws');
+if (viewedData) {
+  console.log('Viewed events:', viewedData.viewedEvents);
+  console.log('Viewed videos:', viewedData.viewedVideos);
+} else {
+  console.log('User has not viewed any content yet');
+}
+```
+
+### Mark Video as Viewed (JavaScript)
+
+```javascript
+const markVideoAsViewed = async (userId, videoId, timestamp) => {
+  const url = `https://api.security-videos.brianandkelly.ws/v4/viewed-videos/${encodeURIComponent(userId)}`;
+
+  const payload = {
+    videoId,
+    timestamp,
+    viewedTimestamp: new Date().toISOString()
+  };
+
+  // Fire and forget - don't wait for response
+  fetch(url, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(async response => {
+    if (!response.ok) {
+      console.warn(`Mark video as viewed failed: ${response.status}`);
+    }
+  })
+  .catch(err => {
+    console.warn('Failed to mark video as viewed:', err);
+  });
+};
+
+// Usage
+markVideoAsViewed(
+  'john.doe@brianandkelly.ws',
+  'cameras/front-door/2025/01/27/video_20250127_143522.mp4',
+  '2025-01-27T14:35:22.000Z'
+);
+```
+
+### Mark Event as Viewed (JavaScript)
+
+```javascript
+const markEventAsViewed = async (userId, eventId, timestamp) => {
+  const url = `https://api.security-videos.brianandkelly.ws/v4/viewed-videos/${encodeURIComponent(userId)}`;
+
+  const payload = {
+    eventId,
+    timestamp,
+    viewedTimestamp: new Date().toISOString()
+  };
+
+  // Fire and forget - don't wait for response
+  fetch(url, {
+    method: 'PUT',
+    credentials: 'include',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify(payload)
+  })
+  .then(async response => {
+    if (!response.ok) {
+      console.warn(`Mark event as viewed failed: ${response.status}`);
+    }
+  })
+  .catch(err => {
+    console.warn('Failed to mark event as viewed:', err);
+  });
+};
+
+// Usage
+markEventAsViewed(
+  'john.doe@brianandkelly.ws',
+  'events/2025/01/27/front-door-motion-123.mp4',
+  '2025-01-27T14:35:22.000Z'
+);
 ```
 
 ## Error Handling

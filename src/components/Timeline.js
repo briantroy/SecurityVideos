@@ -153,27 +153,23 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
             }
         }
 
-        // Prepare viewed data for auto-saving
-        const viewedData = user ? {
-            userId: user.email,
-            viewedEvents: seenGroups,
-            viewedVideos: seenVideos
-        } : null;
+        // Pass userId to fetch viewed data from server
+        const userId = user ? user.email : null;
 
-        getEvents(actualScope, options, viewedData)
+        getEvents(actualScope, options, userId)
             .then(data => {
                 if (viewKeyRef.current !== viewKey) {
                     loadingRef.current = false;
                     return;
                 }
-                
-                // Handle merged viewed data from server
-                if (data._mergedViewedData && data._mergedViewedData.wasMerged) {
-                    const merged = data._mergedViewedData;
-                    setSeenGroups(merged.viewedEvents || []);
-                    setSeenVideos(merged.viewedVideos || []);
-                    localStorage.setItem('viewedEvents', JSON.stringify(merged.viewedEvents || []));
-                    localStorage.setItem('viewedVideos', JSON.stringify(merged.viewedVideos || []));
+
+                // Handle viewed data from server
+                if (data._serverViewedData) {
+                    const serverData = data._serverViewedData;
+                    setSeenGroups(serverData.viewedEvents || []);
+                    setSeenVideos(serverData.viewedVideos || []);
+                    localStorage.setItem('viewedEvents', JSON.stringify(serverData.viewedEvents || []));
+                    localStorage.setItem('viewedVideos', JSON.stringify(serverData.viewedVideos || []));
                     // Force re-render of existing event cards with updated viewed state
                     setRenderTrigger(prev => prev + 1);
                 }
@@ -332,22 +328,18 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
         if (actualScope === 'latest' || actualScope.startsWith('filter:')) {
             options.video_date = formattedDate;
         }
-        // Prepare viewed data for auto-saving
-        const viewedData = user ? {
-            userId: user.email,
-            viewedEvents: seenGroups,
-            viewedVideos: seenVideos
-        } : null;
-        
-        getEvents(actualScope, options, viewedData)
+        // Pass userId to fetch viewed data from server
+        const userId = user ? user.email : null;
+
+        getEvents(actualScope, options, userId)
             .then(data => {
-                // Handle merged viewed data from server
-                if (data._mergedViewedData && data._mergedViewedData.wasMerged) {
-                    const merged = data._mergedViewedData;
-                    setSeenGroups(merged.viewedEvents || []);
-                    setSeenVideos(merged.viewedVideos || []);
-                    localStorage.setItem('viewedEvents', JSON.stringify(merged.viewedEvents || []));
-                    localStorage.setItem('viewedVideos', JSON.stringify(merged.viewedVideos || []));
+                // Handle viewed data from server
+                if (data._serverViewedData) {
+                    const serverData = data._serverViewedData;
+                    setSeenGroups(serverData.viewedEvents || []);
+                    setSeenVideos(serverData.viewedVideos || []);
+                    localStorage.setItem('viewedEvents', JSON.stringify(serverData.viewedEvents || []));
+                    localStorage.setItem('viewedVideos', JSON.stringify(serverData.viewedVideos || []));
                     // Force re-render of existing event cards with updated viewed state
                     setRenderTrigger(prev => prev + 1);
                 }

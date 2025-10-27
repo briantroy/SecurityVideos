@@ -1,4 +1,4 @@
-import { getCameraList, getEvents, saveViewedVideos } from '../api';
+import { getCameraList, getEvents, getViewedVideos } from '../api';
 
 // Mock fetch globally
 global.fetch = jest.fn();
@@ -64,62 +64,106 @@ describe('API functions', () => {
       expect(fetch).toHaveBeenCalledTimes(1);
     });
 
-    test('auto-saves viewed videos when viewedData provided', async () => {
-      const mockResponse = { Items: [] };
-      const mockSaveResponse = { success: true, wasMerged: false };
+    test('fetches viewed videos when userId provided', async () => {
+      const mockEventsResponse = { Items: [] };
+      const mockViewedResponse = {
+        userId: 'test@example.com',
+        timestamp: '2025-01-27T14:35:22.000Z',
+        viewedEvents: ['event1'],
+        viewedVideos: ['video1'],
+        viewedEventsCount: 1,
+        viewedVideosCount: 1
+      };
 
       fetch
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => mockResponse
+          json: async () => mockEventsResponse
         })
         .mockResolvedValueOnce({
           ok: true,
-          json: async () => mockSaveResponse
+          status: 200,
+          json: async () => mockViewedResponse
         });
 
-      const viewedData = {
-        userId: 'test@example.com',
-        viewedEvents: ['event1'],
-        viewedVideos: ['video1']
-      };
-
-      await getEvents('latest', {}, viewedData);
+      const result = await getEvents('latest', {}, 'test@example.com');
 
       expect(fetch).toHaveBeenCalledTimes(2);
+      expect(result._serverViewedData).toBeDefined();
+      expect(result._serverViewedData.viewedEvents).toEqual(['event1']);
+      expect(result._serverViewedData.viewedVideos).toEqual(['video1']);
+    });
+
+    test('handles 404 when user has no viewed videos yet', async () => {
+      const mockEventsResponse = { Items: [] };
+
+      fetch
+        .mockResolvedValueOnce({
+          ok: true,
+          json: async () => mockEventsResponse
+        })
+        .mockResolvedValueOnce({
+          ok: false,
+          status: 404
+        });
+
+      const result = await getEvents('latest', {}, 'test@example.com');
+
+      expect(fetch).toHaveBeenCalledTimes(2);
+      expect(result._serverViewedData).toBeUndefined();
     });
   });
 
-  describe('saveViewedVideos', () => {
-    test('saves viewed videos successfully', async () => {
-      const mockResponse = { success: true, wasMerged: false };
+  describe('getViewedVideos', () => {
+    test('fetches viewed videos successfully', async () => {
+      const mockResponse = {
+        userId: 'test@example.com',
+        timestamp: '2025-01-27T14:35:22.000Z',
+        viewedEvents: ['event1'],
+        viewedVideos: ['video1'],
+        viewedEventsCount: 1,
+        viewedVideosCount: 1
+      };
 
       fetch.mockResolvedValueOnce({
         ok: true,
+        status: 200,
         json: async () => mockResponse
       });
 
-      const result = await saveViewedVideos('test@example.com', ['event1'], ['video1']);
+      const result = await getViewedVideos('test@example.com');
 
       expect(fetch).toHaveBeenCalledWith(
         expect.stringContaining('viewed-videos'),
         expect.objectContaining({
-          method: 'POST',
+          method: 'GET',
           credentials: 'include'
         })
       );
       expect(result).toEqual(mockResponse);
     });
 
-    test('throws error when save fails', async () => {
+    test('returns null when user not found (404)', async () => {
       fetch.mockResolvedValueOnce({
         ok: false,
-        status: 400
+        status: 404
+      });
+
+      const result = await getViewedVideos('test@example.com');
+
+      expect(result).toBeNull();
+    });
+
+    test('throws error when request fails with non-404 status', async () => {
+      fetch.mockResolvedValueOnce({
+        ok: false,
+        status: 400,
+        json: async () => ({ error: 'userId is required' })
       });
 
       await expect(
-        saveViewedVideos('test@example.com', [], [])
-      ).rejects.toThrow('Save viewed videos failed with status: 400');
+        getViewedVideos('test@example.com')
+      ).rejects.toThrow('Get viewed videos failed with status: 400');
     });
   });
 });

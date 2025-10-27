@@ -41,12 +41,12 @@ export const getCameraList = () => {
  * Fetches events based on the specified scope (latest, camera, or filter).
  * @param {string} scope - The scope of events to fetch ('latest', a camera name, or 'filter:filter_name').
  * @param {object} options - Additional options like 'older_than_ts' for pagination.
- * @param {object} viewedData - Optional object containing userId, viewedEvents, and viewedVideos for auto-saving.
+ * @param {string} userId - Optional user identifier to fetch viewed videos/events data from server.
  * @returns {Promise<object>}
- * 
- * 
+ *
+ *
  */
-export const getEvents = async (scope, options = {}, viewedData = null) => {
+export const getEvents = async (scope, options = {}, userId = null) => {
     let endpoint = '/lastfive';
     let params = { num_results: 50, ...options };
 
@@ -59,26 +59,26 @@ export const getEvents = async (scope, options = {}, viewedData = null) => {
     }
 
     const result = await fetchFromApi(endpoint, params);
-    
-    // Auto-save viewed videos after fetching events
-    if (viewedData && viewedData.userId && (viewedData.viewedEvents || viewedData.viewedVideos)) {
+
+    // Fetch viewed videos from server after fetching events
+    if (userId) {
         try {
-            const saveResponse = await saveViewedVideos(
-                viewedData.userId,
-                viewedData.viewedEvents || [],
-                viewedData.viewedVideos || []
-            );
-            
-            // If server merged data, attach it to the result
-            if (saveResponse.wasMerged) {
-                result._mergedViewedData = saveResponse;
+            const viewedData = await getViewedVideos(userId);
+
+            // If server has viewed data, attach it to the result
+            if (viewedData) {
+                result._serverViewedData = {
+                    viewedEvents: viewedData.viewedEvents || [],
+                    viewedVideos: viewedData.viewedVideos || [],
+                    timestamp: viewedData.timestamp
+                };
             }
         } catch (error) {
-            console.warn('Failed to save viewed videos:', error);
-            // Don't fail the main request if saving fails
+            console.warn('Failed to fetch viewed videos:', error);
+            // Don't fail the main request if fetching viewed data fails
         }
     }
-    
+
     return result;
 };
 
@@ -92,34 +92,40 @@ export const getImageLabels = (imageKey) => {
 };
 
 /**
- * Saves viewed videos and events to the server.
+ * Gets viewed videos and events from the server.
  * @param {string} userId - The user identifier.
- * @param {Array<string>} viewedEvents - Array of viewed event group keys.
- * @param {Array<string>} viewedVideos - Array of viewed video object keys.
- * @returns {Promise<object>} - The server response with merged data.
+ * @returns {Promise<object>} - The server response with viewed data or null if user not found.
+ *
+ * Returns:
+ * - 200: { userId, timestamp, viewedEvents, viewedVideos, viewedEventsCount, viewedVideosCount }
+ * - 404: null (user not found, no viewed data yet)
+ * - 400 or other errors: throws error
  */
-export const saveViewedVideos = async (userId, viewedEvents, viewedVideos) => {
+export const getViewedVideos = async (userId) => {
     const url = `${API_HOST}/viewed-videos/${encodeURIComponent(userId)}`;
 
-    const payload = {
-        userId,
-        timestamp: new Date().toISOString(),
-        viewedEvents,
-        viewedVideos
-    };
-
     const response = await fetch(url, {
-        method: 'POST',
+        method: 'GET',
         credentials: 'include', // Send cookies (JWT)
         headers: {
             'Content-Type': 'application/json'
-        },
-        body: JSON.stringify(payload)
+        }
     });
 
+    // Handle 404 as "no viewed data yet" - this is expected for new users
+    if (response.status === 404) {
+        return null;
+    }
+
     if (!response.ok) {
-        const error = new Error(`Save viewed videos failed with status: ${response.status}`);
+        const error = new Error(`Get viewed videos failed with status: ${response.status}`);
         error.status = response.status;
+        try {
+            const errorData = await response.json();
+            error.details = errorData;
+        } catch (e) {
+            // Ignore JSON parse errors
+        }
         throw error;
     }
 

@@ -353,12 +353,74 @@ paths:
                 $ref: '#/components/schemas/Error'
 
   /viewed-videos/{userId}:
-    post:
-      summary: Save user viewing history
+    get:
+      summary: Get user viewing history
       description: |
-        Saves which events and videos a user has viewed.
-        The server merges client data with existing server data and returns the merged result.
-        This enables viewing state synchronization across devices.
+        Retrieves the list of events and videos that a user has viewed.
+        This is called when changing views or fetching events to sync viewing state from the server.
+      tags:
+        - User Preferences
+      parameters:
+        - name: userId
+          in: path
+          required: true
+          description: User identifier (typically email address)
+          schema:
+            type: string
+            format: email
+            example: "user@brianandkelly.ws"
+      responses:
+        '200':
+          description: Viewing history retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ViewedVideosGetResponse'
+        '404':
+          description: User not found or no viewing history yet
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "User not found"
+                  userId:
+                    type: string
+                    example: "user-12345"
+        '400':
+          description: Invalid request (missing userId)
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  error:
+                    type: string
+                    example: "userId is required"
+                  hint:
+                    type: string
+                    example: "Provide userId in path parameters (/viewed-videos/{userId}), query parameters (?userId=xxx), or request body"
+        '401':
+          description: Authentication required
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+        '500':
+          description: Failed to retrieve viewing history
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/Error'
+
+    put:
+      summary: Mark individual video or event as viewed
+      description: |
+        Marks a single video or event as viewed in real-time.
+        This is a fire-and-forget operation called when a video is displayed or an event is selected.
+        The UI does not wait for the response.
       tags:
         - User Preferences
       parameters:
@@ -375,14 +437,20 @@ paths:
         content:
           application/json:
             schema:
-              $ref: '#/components/schemas/ViewedVideosRequest'
+              oneOf:
+                - $ref: '#/components/schemas/MarkVideoViewedRequest'
+                - $ref: '#/components/schemas/MarkEventViewedRequest'
       responses:
         '200':
-          description: Viewing history saved successfully
+          description: Video or event marked as viewed successfully
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/ViewedVideosResponse'
+                type: object
+                properties:
+                  success:
+                    type: boolean
+                    example: true
         '400':
           description: Invalid request payload
           content:
@@ -396,7 +464,7 @@ paths:
               schema:
                 $ref: '#/components/schemas/Error'
         '500':
-          description: Failed to save viewing history
+          description: Failed to mark as viewed
           content:
             application/json:
               schema:
@@ -609,8 +677,95 @@ components:
                 type: string
                 example: "Human"
 
+    ViewedVideosGetResponse:
+      type: object
+      required:
+        - userId
+        - timestamp
+        - viewedEvents
+        - viewedVideos
+        - viewedEventsCount
+        - viewedVideosCount
+      properties:
+        userId:
+          type: string
+          format: email
+          description: User identifier
+          example: "user@brianandkelly.ws"
+        timestamp:
+          type: string
+          format: date-time
+          description: When the server last updated this data
+          example: "2025-01-27T14:35:22.000Z"
+        viewedEvents:
+          type: array
+          description: Array of viewed event group keys
+          items:
+            type: string
+          example: ["events/2025/01/27/front-door-motion-123.mp4", "events/2025/01/26/garage-door-456.mp4"]
+        viewedVideos:
+          type: array
+          description: Array of viewed individual video object keys
+          items:
+            type: string
+          example: ["videos/2025/01/27/driveway-cam-001.mp4", "videos/2025/01/26/backyard-cam-002.mp4"]
+        viewedEventsCount:
+          type: integer
+          description: Total number of viewed events
+          example: 3
+        viewedVideosCount:
+          type: integer
+          description: Total number of viewed videos
+          example: 3
+
+    MarkVideoViewedRequest:
+      type: object
+      required:
+        - videoId
+        - timestamp
+        - viewedTimestamp
+      properties:
+        videoId:
+          type: string
+          description: The video's object key
+          example: "cameras/front-door/2025/01/27/video_123456.mp4"
+        timestamp:
+          type: string
+          format: date-time
+          description: The video's timestamp from the API
+          example: "2025-01-27T14:35:22.000Z"
+        viewedTimestamp:
+          type: string
+          format: date-time
+          description: When the video was viewed by the user
+          example: "2025-01-27T14:36:00.000Z"
+
+    MarkEventViewedRequest:
+      type: object
+      required:
+        - eventId
+        - timestamp
+        - viewedTimestamp
+      properties:
+        eventId:
+          type: string
+          description: The event's group key
+          example: "events/2025/01/27/front-door-motion-123.mp4"
+        timestamp:
+          type: string
+          format: date-time
+          description: The timestamp of the first event in the group
+          example: "2025-01-27T14:35:22.000Z"
+        viewedTimestamp:
+          type: string
+          format: date-time
+          description: When the event was viewed by the user
+          example: "2025-01-27T14:36:00.000Z"
+
     ViewedVideosRequest:
       type: object
+      deprecated: true
+      description: DEPRECATED - No longer used. Viewing history is now retrieved via GET and updated via PUT.
       required:
         - userId
         - timestamp
@@ -642,6 +797,8 @@ components:
 
     ViewedVideosResponse:
       type: object
+      deprecated: true
+      description: DEPRECATED - No longer used. Viewing history is now retrieved via GET and updated via PUT.
       required:
         - success
         - wasMerged
