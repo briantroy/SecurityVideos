@@ -64,7 +64,17 @@ export const getEvents = async (scope, options = {}, userId = null) => {
     if (userId) {
         try {
             // Retrieve the last stored timestamp for incremental updates
-            const lastTimestamp = localStorage.getItem('viewedVideosTimestamp');
+            let lastTimestamp = localStorage.getItem('viewedVideosTimestamp');
+
+            // If timestamp is older than 24 hours, treat it as a first request
+            if (lastTimestamp) {
+                const timestampAge = Date.now() - new Date(lastTimestamp).getTime();
+                const twentyFourHours = 24 * 60 * 60 * 1000; // 24 hours in milliseconds
+                if (timestampAge > twentyFourHours) {
+                    lastTimestamp = null; // Discard stale timestamp
+                }
+            }
+
             const viewedData = await getViewedVideos(userId, lastTimestamp);
 
             // If server has viewed data, attach it to the result
