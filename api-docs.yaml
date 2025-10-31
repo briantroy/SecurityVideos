@@ -358,6 +358,15 @@ paths:
       description: |
         Retrieves the list of events and videos that a user has viewed.
         This is called when changing views or fetching events to sync viewing state from the server.
+
+        **Incremental Updates:** Use the `since` query parameter to fetch only changes since a specific timestamp.
+        This enables efficient syncing by returning only new viewed items instead of the full history.
+
+        - **Without `since`**: Returns complete viewing history (full sync)
+        - **With `since`**: Returns only items viewed after the specified timestamp (incremental sync)
+
+        **Client Implementation:** Store the `timestamp` from responses and send it as `since` in subsequent requests.
+        If the stored timestamp is older than 24 hours, omit it to perform a full sync.
       tags:
         - User Preferences
       parameters:
@@ -369,6 +378,17 @@ paths:
             type: string
             format: email
             example: "user@brianandkelly.ws"
+        - name: since
+          in: query
+          required: false
+          description: |
+            Timestamp for incremental updates - only return items viewed after this time.
+            Format: ISO 8601 datetime string.
+            If omitted or older than 24 hours, returns full viewing history.
+          schema:
+            type: string
+            format: date-time
+            example: "2025-01-27T14:35:22.000Z"
       responses:
         '200':
           description: Viewing history retrieved successfully

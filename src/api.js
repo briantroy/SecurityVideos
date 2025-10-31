@@ -82,7 +82,8 @@ export const getEvents = async (scope, options = {}, userId = null) => {
                 result._serverViewedData = {
                     viewedEvents: viewedData.viewedEvents || [],
                     viewedVideos: viewedData.viewedVideos || [],
-                    timestamp: viewedData.timestamp
+                    timestamp: viewedData.timestamp,
+                    isIncremental: lastTimestamp !== null // Track if this was an incremental update
                 };
 
                 // Store the new timestamp for future incremental updates

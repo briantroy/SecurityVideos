@@ -38,7 +38,8 @@ This directory contains comprehensive API documentation for the Security Videos 
 | `/lastfive` | GET | Get latest events (all cameras) |
 | `/lastfive/{camera}` | GET | Get events from specific camera |
 | `/image/labels` | GET | Get AWS Rekognition labels |
-| `/viewed-videos/{userId}` | POST | Save user viewing history |
+| `/viewed-videos/{userId}` | GET | Get user viewing history (supports `since` parameter for incremental sync) |
+| `/viewed-videos/{userId}` | PUT | Mark individual video/event as viewed |
 
 ## Quick Start
 

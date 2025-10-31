@@ -167,21 +167,29 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
                 if (data._serverViewedData) {
                     const serverData = data._serverViewedData;
 
-                    // Merge new viewed data with existing data (incremental update)
-                    const existingEvents = JSON.parse(localStorage.getItem('viewedEvents') || '[]');
-                    const existingVideos = JSON.parse(localStorage.getItem('viewedVideos') || '[]');
+                    let finalEvents, finalVideos;
 
-                    const mergedEvents = [...new Set([...existingEvents, ...(serverData.viewedEvents || [])])];
-                    const mergedVideos = [...new Set([...existingVideos, ...(serverData.viewedVideos || [])])];
+                    if (serverData.isIncremental) {
+                        // Incremental update: merge with existing data
+                        const existingEvents = JSON.parse(localStorage.getItem('viewedEvents') || '[]');
+                        const existingVideos = JSON.parse(localStorage.getItem('viewedVideos') || '[]');
 
-                    setSeenGroups(mergedEvents);
-                    setSeenVideos(mergedVideos);
-                    localStorage.setItem('viewedEvents', JSON.stringify(mergedEvents));
-                    localStorage.setItem('viewedVideos', JSON.stringify(mergedVideos));
+                        finalEvents = [...new Set([...existingEvents, ...(serverData.viewedEvents || [])])];
+                        finalVideos = [...new Set([...existingVideos, ...(serverData.viewedVideos || [])])];
+                    } else {
+                        // Full refresh: overwrite with server data
+                        finalEvents = serverData.viewedEvents || [];
+                        finalVideos = serverData.viewedVideos || [];
+                    }
+
+                    setSeenGroups(finalEvents);
+                    setSeenVideos(finalVideos);
+                    localStorage.setItem('viewedEvents', JSON.stringify(finalEvents));
+                    localStorage.setItem('viewedVideos', JSON.stringify(finalVideos));
                     // Force re-render of existing event cards with updated viewed state
                     setRenderTrigger(prev => prev + 1);
                 }
-                
+
                 const count = data.Items.length;
                 // Update paging key from response in ALL cases
                 const lek = data.LastEvaluatedKey || null;
@@ -345,17 +353,25 @@ const Timeline = ({ scope, scrollableContainer, selectedMedia, setSelectedMedia,
                 if (data._serverViewedData) {
                     const serverData = data._serverViewedData;
 
-                    // Merge new viewed data with existing data (incremental update)
-                    const existingEvents = JSON.parse(localStorage.getItem('viewedEvents') || '[]');
-                    const existingVideos = JSON.parse(localStorage.getItem('viewedVideos') || '[]');
+                    let finalEvents, finalVideos;
 
-                    const mergedEvents = [...new Set([...existingEvents, ...(serverData.viewedEvents || [])])];
-                    const mergedVideos = [...new Set([...existingVideos, ...(serverData.viewedVideos || [])])];
+                    if (serverData.isIncremental) {
+                        // Incremental update: merge with existing data
+                        const existingEvents = JSON.parse(localStorage.getItem('viewedEvents') || '[]');
+                        const existingVideos = JSON.parse(localStorage.getItem('viewedVideos') || '[]');
 
-                    setSeenGroups(mergedEvents);
-                    setSeenVideos(mergedVideos);
-                    localStorage.setItem('viewedEvents', JSON.stringify(mergedEvents));
-                    localStorage.setItem('viewedVideos', JSON.stringify(mergedVideos));
+                        finalEvents = [...new Set([...existingEvents, ...(serverData.viewedEvents || [])])];
+                        finalVideos = [...new Set([...existingVideos, ...(serverData.viewedVideos || [])])];
+                    } else {
+                        // Full refresh: overwrite with server data
+                        finalEvents = serverData.viewedEvents || [];
+                        finalVideos = serverData.viewedVideos || [];
+                    }
+
+                    setSeenGroups(finalEvents);
+                    setSeenVideos(finalVideos);
+                    localStorage.setItem('viewedEvents', JSON.stringify(finalEvents));
+                    localStorage.setItem('viewedVideos', JSON.stringify(finalVideos));
                     // Force re-render of existing event cards with updated viewed state
                     setRenderTrigger(prev => prev + 1);
                 }

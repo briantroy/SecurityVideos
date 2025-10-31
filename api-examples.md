@@ -194,6 +194,9 @@ curl -X GET "https://api.security-videos.brianandkelly.ws/v4/image/labels?image-
 
 ### Get Viewing History (GET)
 
+#### Full Sync (No `since` parameter)
+Returns complete viewing history for initial sync or when cached data is stale.
+
 ```bash
 curl -X GET "https://api.security-videos.brianandkelly.ws/v4/viewed-videos/john.doe%40brianandkelly.ws" \
   --cookie cookies.txt
@@ -216,6 +219,30 @@ curl -X GET "https://api.security-videos.brianandkelly.ws/v4/viewed-videos/john.
   ],
   "viewedEventsCount": 3,
   "viewedVideosCount": 3
+}
+```
+
+#### Incremental Sync (With `since` parameter)
+Returns only items viewed after the specified timestamp for efficient updates.
+
+```bash
+curl -X GET "https://api.security-videos.brianandkelly.ws/v4/viewed-videos/john.doe%40brianandkelly.ws?since=2025-01-27T14%3A35%3A22.000Z" \
+  --cookie cookies.txt
+```
+
+**Response (200 OK - New items since timestamp):**
+```json
+{
+  "userId": "john.doe@brianandkelly.ws",
+  "timestamp": "2025-01-27T15:42:10.000Z",
+  "viewedEvents": [
+    "events/2025/01/27/garage-cam-new-event.mp4"
+  ],
+  "viewedVideos": [
+    "videos/2025/01/27/new-video-001.mp4"
+  ],
+  "viewedEventsCount": 1,
+  "viewedVideosCount": 1
 }
 ```
 
@@ -337,6 +364,8 @@ fetchEvents('filter:outdoor', { video_date: '2023-12-31' });
 
 ### Get Viewing History (JavaScript)
 
+#### Full Sync
+
 ```javascript
 const getViewingHistory = async (userId) => {
   const url = `https://api.security-videos.brianandkelly.ws/v4/viewed-videos/${encodeURIComponent(userId)}`;
@@ -371,8 +400,98 @@ const viewedData = await getViewingHistory('john.doe@brianandkelly.ws');
 if (viewedData) {
   console.log('Viewed events:', viewedData.viewedEvents);
   console.log('Viewed videos:', viewedData.viewedVideos);
+  // Store timestamp for future incremental updates
+  localStorage.setItem('viewedVideosTimestamp', viewedData.timestamp);
 } else {
   console.log('User has not viewed any content yet');
+}
+```
+
+#### Incremental Sync with Timestamp Management
+
+```javascript
+const getViewingHistoryIncremental = async (userId) => {
+  // Retrieve the last stored timestamp
+  let lastTimestamp = localStorage.getItem('viewedVideosTimestamp');
+
+  // If timestamp is older than 24 hours, treat as first request
+  if (lastTimestamp) {
+    const timestampAge = Date.now() - new Date(lastTimestamp).getTime();
+    const twentyFourHours = 24 * 60 * 60 * 1000;
+    if (timestampAge > twentyFourHours) {
+      lastTimestamp = null; // Discard stale timestamp
+    }
+  }
+
+  // Build URL with optional since parameter
+  const url = new URL(
+    `https://api.security-videos.brianandkelly.ws/v4/viewed-videos/${encodeURIComponent(userId)}`
+  );
+  if (lastTimestamp) {
+    url.searchParams.append('since', lastTimestamp);
+  }
+
+  try {
+    const response = await fetch(url, {
+      method: 'GET',
+      credentials: 'include',
+      headers: {
+        'Content-Type': 'application/json'
+      }
+    });
+
+    if (response.status === 404) {
+      return null;
+    }
+
+    if (!response.ok) {
+      throw new Error(`Get failed with status: ${response.status}`);
+    }
+
+    const viewedData = await response.json();
+
+    // Store new timestamp for future incremental updates
+    if (viewedData.timestamp) {
+      localStorage.setItem('viewedVideosTimestamp', viewedData.timestamp);
+    }
+
+    // Determine if we need to merge or replace
+    const isIncremental = lastTimestamp !== null;
+
+    if (isIncremental) {
+      // Merge with existing data
+      const existingEvents = JSON.parse(localStorage.getItem('viewedEvents') || '[]');
+      const existingVideos = JSON.parse(localStorage.getItem('viewedVideos') || '[]');
+
+      const mergedEvents = [...new Set([...existingEvents, ...viewedData.viewedEvents])];
+      const mergedVideos = [...new Set([...existingVideos, ...viewedData.viewedVideos])];
+
+      localStorage.setItem('viewedEvents', JSON.stringify(mergedEvents));
+      localStorage.setItem('viewedVideos', JSON.stringify(mergedVideos));
+
+      return {
+        ...viewedData,
+        viewedEvents: mergedEvents,
+        viewedVideos: mergedVideos
+      };
+    } else {
+      // Full refresh - replace existing data
+      localStorage.setItem('viewedEvents', JSON.stringify(viewedData.viewedEvents));
+      localStorage.setItem('viewedVideos', JSON.stringify(viewedData.viewedVideos));
+
+      return viewedData;
+    }
+  } catch (error) {
+    console.error('Failed to get viewing history:', error);
+    throw error;
+  }
+};
+
+// Usage
+const viewedData = await getViewingHistoryIncremental('john.doe@brianandkelly.ws');
+if (viewedData) {
+  console.log('Viewed events:', viewedData.viewedEvents);
+  console.log('Viewed videos:', viewedData.viewedVideos);
 }
 ```
 
