@@ -63,7 +63,9 @@ export const getEvents = async (scope, options = {}, userId = null) => {
     // Fetch viewed videos from server after fetching events
     if (userId) {
         try {
-            const viewedData = await getViewedVideos(userId);
+            // Retrieve the last stored timestamp for incremental updates
+            const lastTimestamp = localStorage.getItem('viewedVideosTimestamp');
+            const viewedData = await getViewedVideos(userId, lastTimestamp);
 
             // If server has viewed data, attach it to the result
             if (viewedData) {
@@ -72,6 +74,11 @@ export const getEvents = async (scope, options = {}, userId = null) => {
                     viewedVideos: viewedData.viewedVideos || [],
                     timestamp: viewedData.timestamp
                 };
+
+                // Store the new timestamp for future incremental updates
+                if (viewedData.timestamp) {
+                    localStorage.setItem('viewedVideosTimestamp', viewedData.timestamp);
+                }
             }
         } catch (error) {
             console.warn('Failed to fetch viewed videos:', error);
@@ -94,6 +101,7 @@ export const getImageLabels = (imageKey) => {
 /**
  * Gets viewed videos and events from the server.
  * @param {string} userId - The user identifier.
+ * @param {string} since - Optional timestamp to fetch only changes since this time.
  * @returns {Promise<object>} - The server response with viewed data or null if user not found.
  *
  * Returns:
@@ -101,8 +109,13 @@ export const getImageLabels = (imageKey) => {
  * - 404: null (user not found, no viewed data yet)
  * - 400 or other errors: throws error
  */
-export const getViewedVideos = async (userId) => {
-    const url = `${API_HOST}/viewed-videos/${encodeURIComponent(userId)}`;
+export const getViewedVideos = async (userId, since = null) => {
+    const url = new URL(`${API_HOST}/viewed-videos/${encodeURIComponent(userId)}`);
+
+    // Add since parameter if provided
+    if (since) {
+        url.searchParams.append('since', since);
+    }
 
     const response = await fetch(url, {
         method: 'GET',
