@@ -506,20 +506,27 @@ html, body {
 }
 @media (max-width: 600px) {
   .media-viewer-panel {
-    max-height: 40vh !important;
+    max-height: 35vh !important;
     height: auto !important;
     overflow-y: visible !important;
     background: var(--media-viewer-bg);
+    flex: 0 0 auto !important;
   }
   .media-viewer {
-    max-height: 40vh !important;
+    max-height: 35vh !important;
     height: auto !important;
     position: static !important;
     background: var(--media-viewer-bg);
+    flex: 0 0 auto !important;
   }
   .media-container {
-    max-height: 28vh !important;
+    max-height: 22vh !important;
     height: auto !important;
+  }
+  .media-info {
+    padding: 8px 12px !important;
+    background: var(--media-info-bg);
+    color: var(--text-primary);
   }
 }
 @media (max-width: 600px) {
@@ -529,7 +536,7 @@ html, body {
   .media-viewer-panel {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
-    max-height: 40vh;
+    max-height: 35vh;
     background: var(--media-viewer-bg);
   }
 }
