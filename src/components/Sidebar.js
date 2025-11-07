@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 
-function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onToggle, currentScope, userToken }) {
+function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onToggle, currentScope, userToken, isDarkMode, onToggleDarkMode }) {
     const [localUser, setLocalUser] = useState(null);
     const [searchDate, setSearchDate] = useState('');
     const [searchTime, setSearchTime] = useState('');
@@ -167,6 +167,14 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
             </nav>
 
             <div className="sidebar-footer">
+                <button
+                    onClick={onToggleDarkMode}
+                    className="theme-toggle"
+                    aria-label={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                    title={isDarkMode ? 'Switch to light mode' : 'Switch to dark mode'}
+                >
+                    {isDarkMode ? '☀️' : '🌙'}
+                </button>
                 <button onClick={onSignOut} className="signout-button">
                     Sign Out
                 </button>

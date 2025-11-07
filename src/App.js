@@ -39,6 +39,17 @@ function App() {
     // Auto-refresh views list (cameras/groups) every 12 hours
     const viewsRefreshTimer = useRef();
 
+    // Dark mode state with OS preference detection
+    const [isDarkMode, setIsDarkMode] = useState(() => {
+        // Check localStorage first
+        const savedTheme = localStorage.getItem('theme-preference');
+        if (savedTheme) {
+            return savedTheme === 'dark';
+        }
+        // Fall back to OS preference
+        return window.matchMedia && window.matchMedia('(prefers-color-scheme: dark)').matches;
+    });
+
     // JWT token is not stored in JS, but we track login state
     const [userToken, setUserToken] = useState(null); // Used only for UI state, not for API calls
     const [user, setUser] = useState(() => {
@@ -58,6 +69,40 @@ function App() {
     const [selectedMedia, setSelectedMedia] = useState(null);
     // Offline video popup state
     const [showOfflineVideoPopup, setShowOfflineVideoPopup] = useState(false);
+
+    // Dark mode: Apply class to root element and update meta theme-color
+    useEffect(() => {
+        const root = document.documentElement;
+        if (isDarkMode) {
+            root.classList.add('dark-mode');
+        } else {
+            root.classList.remove('dark-mode');
+        }
+
+        // Update PWA theme-color meta tag
+        const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+        if (metaThemeColor) {
+            metaThemeColor.setAttribute('content', isDarkMode ? '#1c2833' : '#2c3e50');
+        }
+
+        // Save preference to localStorage
+        localStorage.setItem('theme-preference', isDarkMode ? 'dark' : 'light');
+    }, [isDarkMode]);
+
+    // Dark mode: Listen to OS theme preference changes
+    useEffect(() => {
+        const mediaQuery = window.matchMedia('(prefers-color-scheme: dark)');
+        const handleChange = (e) => {
+            // Only update if user hasn't manually set a preference
+            const savedTheme = localStorage.getItem('theme-preference');
+            if (!savedTheme) {
+                setIsDarkMode(e.matches);
+            }
+        };
+
+        mediaQuery.addEventListener('change', handleChange);
+        return () => mediaQuery.removeEventListener('change', handleChange);
+    }, []);
 
     // Auto-close sidebar on iPhone screen sizes
     useEffect(() => {
@@ -189,6 +234,10 @@ function App() {
         setSidebarOpen(!isSidebarOpen);
     };
 
+    const toggleDarkMode = () => {
+        setIsDarkMode(!isDarkMode);
+    };
+
 
     if (!userToken) {
         return (
@@ -224,6 +273,8 @@ function App() {
                     onToggle={toggleSidebar}
                     currentScope={currentScope}
                     userToken={userToken}
+                    isDarkMode={isDarkMode}
+                    onToggleDarkMode={toggleDarkMode}
                 />
                 <main ref={mainContentRef} className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
                     <header className="main-header">
