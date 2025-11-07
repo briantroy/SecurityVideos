@@ -362,6 +362,7 @@ html, body {
     position: static !important;
     display: flex !important;
     flex-direction: column;
+    background: var(--media-viewer-bg);
   }
   /* --- MEDIA VIEWER FLEX CONTAINMENT FIX --- */
   .media-viewer {
@@ -379,6 +380,8 @@ html, body {
     flex: 0 0 auto;
     min-height: 0;
     z-index: 2;
+    background: var(--media-info-bg);
+    color: var(--text-primary);
   }
 
   .media-container {
@@ -430,6 +433,7 @@ html, body {
     position: static !important;
     display: flex !important;
     flex-direction: column;
+    background: var(--media-viewer-bg);
   }
   .media-viewer {
     height: 100% !important;
@@ -477,10 +481,13 @@ html, body {
     max-height: 50vh !important;
     height: auto !important;
     overflow-y: visible !important;
+    background: var(--media-viewer-bg);
   }
   .media-info {
     padding: 8px 10px 8px 10px;
     font-size: 0.95rem;
+    background: var(--media-info-bg);
+    color: var(--text-primary);
   }
   .media-container {
     max-height: 28vh !important;
@@ -502,11 +509,13 @@ html, body {
     max-height: 40vh !important;
     height: auto !important;
     overflow-y: visible !important;
+    background: var(--media-viewer-bg);
   }
   .media-viewer {
     max-height: 40vh !important;
     height: auto !important;
     position: static !important;
+    background: var(--media-viewer-bg);
   }
   .media-container {
     max-height: 28vh !important;
@@ -521,6 +530,7 @@ html, body {
     margin-bottom: 0 !important;
     padding-bottom: 0 !important;
     max-height: 40vh;
+    background: var(--media-viewer-bg);
   }
 }
 @media (max-width: 600px) {
@@ -603,7 +613,7 @@ html, body {
     position: sticky;
     top: 0;
     z-index: 2;
-    background: #f4f7f6;
+    background: var(--media-viewer-bg);
     overflow-y: auto;
   }
   .timeline-panel {
