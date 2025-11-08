@@ -1021,6 +1021,16 @@ html, body {
   background-color: var(--login-bg);
 }
 
+.login-container h2 {
+  color: var(--text-primary);
+  margin-bottom: 10px;
+}
+
+.login-container p {
+  color: var(--text-secondary);
+  margin-bottom: 30px;
+}
+
 .timeline-container {
     display: flex;
     gap: 20px;
