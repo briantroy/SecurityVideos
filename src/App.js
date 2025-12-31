@@ -4,7 +4,7 @@ import { GoogleOAuthProvider, GoogleLogin, googleLogout } from '@react-oauth/goo
 import Sidebar from './components/Sidebar';
 import Timeline from './components/Timeline';
 import MediaViewer from './components/MediaViewer';
-import { getCameraList } from './api';
+import { getCameraList, saveCameraConfig } from './api';
 import { API_HOST } from './api';
 import './App.css';
 
@@ -58,7 +58,8 @@ function App() {
         return savedUser ? JSON.parse(savedUser) : null;
     });
     const [cameras, setCameras] = useState([]);
-    const [groups, setGroups] = useState([]);
+    const [filters, setFilters] = useState({});  // Full filter objects
+    const [filterOrder, setFilterOrder] = useState([]);  // Ordered filter names
     // Load last scope from localStorage if available
     const [currentScope, setCurrentScope] = useState(() => {
         return localStorage.getItem('lastScope') || 'latest';
@@ -194,7 +195,8 @@ function App() {
         setUser(null);
         localStorage.removeItem('user');
         setCameras([]);
-        setGroups([]);
+        setFilters({});
+        setFilterOrder([]);
     }, []);
 
     // Fetch camera and group lists after successful login and every 12 hours
@@ -203,7 +205,10 @@ function App() {
             getCameraList()
                 .then(data => {
                     setCameras(data.cameras || []);
-                    setGroups(Object.keys(data.filters || {}));
+                    const filterData = data.filters || {};
+                    setFilters(filterData);
+                    // Extract keys in order (JavaScript preserves insertion order)
+                    setFilterOrder(Object.keys(filterData));
                 })
                 .catch(err => {
                     console.error("Failed to fetch camera list:", err);
@@ -238,6 +243,30 @@ function App() {
         setIsDarkMode(!isDarkMode);
     };
 
+    // Handler to save filters after any modification (create/update/delete/reorder)
+    const handleSaveFilters = useCallback(async (updatedFilters) => {
+        // Store previous state for rollback
+        const prevFilters = filters;
+        const prevOrder = filterOrder;
+
+        // Optimistic update
+        setFilters(updatedFilters);
+        setFilterOrder(Object.keys(updatedFilters));
+
+        try {
+            // Save both cameras and filters (cameras unchanged, only filters modified)
+            await saveCameraConfig(cameras, updatedFilters);
+            // Success - optimistic update was correct
+            console.log('Filters saved successfully');
+        } catch (error) {
+            // Rollback on failure
+            setFilters(prevFilters);
+            setFilterOrder(prevOrder);
+
+            console.error('Failed to save filters:', error);
+            alert(`Failed to save filters: ${error.message}`);
+        }
+    }, [cameras, filters, filterOrder]);
 
     if (!userToken) {
         return (
@@ -266,7 +295,8 @@ function App() {
                 <Sidebar
                     user={user}
                     cameras={cameras}
-                    groups={groups}
+                    filters={filters}
+                    filterOrder={filterOrder}
                     onSelectScope={setCurrentScope}
                     onSignOut={handleSignOut}
                     isOpen={isSidebarOpen}
@@ -275,6 +305,7 @@ function App() {
                     userToken={userToken}
                     isDarkMode={isDarkMode}
                     onToggleDarkMode={toggleDarkMode}
+                    onSaveFilters={handleSaveFilters}
                 />
                 <main ref={mainContentRef} className={`main-content ${isSidebarOpen ? 'sidebar-open' : 'sidebar-closed'}`}>
                     <header className="main-header">

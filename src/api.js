@@ -38,6 +38,29 @@ export const getCameraList = () => {
 };
 
 /**
+ * Save the entire camera/filter configuration (overwrites existing).
+ * @param {Array} cameras - Array of camera names
+ * @param {object} filters - Complete filters object with operator-based structure
+ * @returns {Promise<object>}
+ */
+export const saveCameraConfig = async (cameras, filters) => {
+    const response = await fetch(`${API_HOST}/cameras`, {
+        method: 'POST',
+        credentials: 'include',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ cameras, filters })
+    });
+
+    if (!response.ok) {
+        const error = new Error(`Save configuration failed: ${response.status}`);
+        error.status = response.status;
+        throw error;
+    }
+
+    return response.json();
+};
+
+/**
  * Fetches events based on the specified scope (latest, camera, or filter).
  * @param {string} scope - The scope of events to fetch ('latest', a camera name, or 'filter:filter_name').
  * @param {object} options - Additional options like 'older_than_ts' for pagination.

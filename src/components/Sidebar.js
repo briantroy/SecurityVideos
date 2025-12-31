@@ -1,10 +1,16 @@
 import React, { useState, useEffect } from 'react';
+import FilterEditModal from './FilterEditModal';
+import ConfirmDialog from './ConfirmDialog';
 
-function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onToggle, currentScope, userToken, isDarkMode, onToggleDarkMode }) {
+function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut, isOpen, onToggle, currentScope, userToken, isDarkMode, onToggleDarkMode, onSaveFilters }) {
     const [localUser, setLocalUser] = useState(null);
     const [searchDate, setSearchDate] = useState('');
     const [searchTime, setSearchTime] = useState('');
     const [isDateSearchCollapsed, setIsDateSearchCollapsed] = useState(true);
+    const [isFilterModalOpen, setFilterModalOpen] = useState(false);
+    const [editingFilter, setEditingFilter] = useState(null);
+    const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
+    const [openMenuFilter, setOpenMenuFilter] = useState(null);
 
     // Load user from localStorage and keep it synced
     useEffect(() => {
@@ -58,6 +64,83 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
 
     // Use localStorage user or fallback to prop user
     const displayUser = localUser || user;
+
+    // Filter operation handlers
+    const handleCreateFilter = (filterData) => {
+        const newFilters = {
+            ...filters,
+            [filterData.name]: {
+                operator: filterData.operator,
+                value: filterData.value
+            }
+        };
+        onSaveFilters(newFilters);
+        setFilterModalOpen(false);
+    };
+
+    const handleUpdateFilter = (oldName, filterData) => {
+        if (oldName !== filterData.name) {
+            // Renaming - rebuild object to preserve order
+            const newFilters = {};
+            Object.keys(filters).forEach(key => {
+                if (key === oldName) {
+                    newFilters[filterData.name] = {
+                        operator: filterData.operator,
+                        value: filterData.value
+                    };
+                } else {
+                    newFilters[key] = filters[key];
+                }
+            });
+            onSaveFilters(newFilters);
+        } else {
+            // Just update values
+            const newFilters = {
+                ...filters,
+                [filterData.name]: {
+                    operator: filterData.operator,
+                    value: filterData.value
+                }
+            };
+            onSaveFilters(newFilters);
+        }
+        setFilterModalOpen(false);
+    };
+
+    const handleDeleteFilter = (filterName) => {
+        const newFilters = {};
+        Object.keys(filters).forEach(key => {
+            if (key !== filterName) {
+                newFilters[key] = filters[key];
+            }
+        });
+        onSaveFilters(newFilters);
+        setShowDeleteConfirm(null);
+
+        // If we're currently viewing the deleted filter, switch to latest
+        if (currentScope === `filter:${filterName}`) {
+            onSelectScope('latest');
+        }
+    };
+
+    const handleMoveFilter = (filterName, direction) => {
+        const currentIndex = filterOrder.indexOf(filterName);
+        if (currentIndex === -1) return;
+
+        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        if (newIndex < 0 || newIndex >= filterOrder.length) return;
+
+        const newOrder = [...filterOrder];
+        [newOrder[currentIndex], newOrder[newIndex]] = [newOrder[newIndex], newOrder[currentIndex]];
+
+        // Rebuild filters object in new order
+        const newFilters = {};
+        newOrder.forEach(name => {
+            newFilters[name] = filters[name];
+        });
+
+        onSaveFilters(newFilters);
+    };
 
     // Don't show sidebar if not authenticated at all
     if (!userToken) {
@@ -135,19 +218,83 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
                     </li>
                 </ul>
 
-                {groups.length > 0 && (
-                    <>
-                        <h4>Groups</h4>
-                        <ul>
-                            {groups.map(group => (
-                                <li key={group} className={activeScope === `filter:${group}` ? 'active' : ''}>
-                                    <button onClick={() => onSelectScope(`filter:${group}`)}>
-                                        {group}
-                                    </button>
-                                </li>
-                            ))}
-                        </ul>
-                    </>
+                <div className="groups-header">
+                    <h4>Groups</h4>
+                    <button
+                        className="add-filter-btn"
+                        onClick={() => {
+                            setEditingFilter(null);
+                            setFilterModalOpen(true);
+                        }}
+                        title="Add new filter"
+                    >
+                        + Add
+                    </button>
+                </div>
+                {filterOrder.length > 0 && (
+                    <ul>
+                        {filterOrder.map((filterName, index) => (
+                            <li key={filterName} className={activeScope === `filter:${filterName}` ? 'active' : ''}>
+                                <button
+                                    className="filter-name"
+                                    onClick={() => onSelectScope(`filter:${filterName}`)}
+                                >
+                                    {filterName}
+                                </button>
+                                <button
+                                    className="filter-menu-btn"
+                                    onClick={(e) => {
+                                        e.stopPropagation();
+                                        setOpenMenuFilter(openMenuFilter === filterName ? null : filterName);
+                                    }}
+                                    title="Filter options"
+                                >
+                                    ⋮
+                                </button>
+                                {openMenuFilter === filterName && (
+                                    <div className="filter-dropdown">
+                                        <button
+                                            onClick={() => {
+                                                setEditingFilter({ name: filterName });
+                                                setFilterModalOpen(true);
+                                                setOpenMenuFilter(null);
+                                            }}
+                                        >
+                                            Edit
+                                        </button>
+                                        <button
+                                            onClick={() => {
+                                                setShowDeleteConfirm(filterName);
+                                                setOpenMenuFilter(null);
+                                            }}
+                                        >
+                                            Delete
+                                        </button>
+                                        {index > 0 && (
+                                            <button
+                                                onClick={() => {
+                                                    handleMoveFilter(filterName, 'up');
+                                                    setOpenMenuFilter(null);
+                                                }}
+                                            >
+                                                ↑ Up
+                                            </button>
+                                        )}
+                                        {index < filterOrder.length - 1 && (
+                                            <button
+                                                onClick={() => {
+                                                    handleMoveFilter(filterName, 'down');
+                                                    setOpenMenuFilter(null);
+                                                }}
+                                            >
+                                                ↓ Down
+                                            </button>
+                                        )}
+                                    </div>
+                                )}
+                            </li>
+                        ))}
+                    </ul>
                 )}
 
                 {cameras.length > 0 && (
@@ -179,6 +326,31 @@ function Sidebar({ user, cameras, groups, onSelectScope, onSignOut, isOpen, onTo
                     Sign Out
                 </button>
             </div>
+
+            {isFilterModalOpen && (
+                <FilterEditModal
+                    filter={editingFilter}
+                    filters={filters}
+                    cameras={cameras}
+                    onSave={(filterData) => {
+                        if (editingFilter) {
+                            handleUpdateFilter(editingFilter.name, filterData);
+                        } else {
+                            handleCreateFilter(filterData);
+                        }
+                    }}
+                    onCancel={() => setFilterModalOpen(false)}
+                />
+            )}
+
+            {showDeleteConfirm && (
+                <ConfirmDialog
+                    title="Delete Filter?"
+                    message={`Are you sure you want to delete "${showDeleteConfirm}"? This cannot be undone.`}
+                    onConfirm={() => handleDeleteFilter(showDeleteConfirm)}
+                    onCancel={() => setShowDeleteConfirm(null)}
+                />
+            )}
         </aside>
     );
 }
