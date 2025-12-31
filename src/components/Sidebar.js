@@ -11,6 +11,7 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
     const [editingFilter, setEditingFilter] = useState(null);
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
     const [openMenuFilter, setOpenMenuFilter] = useState(null);
+    const [openMenuCamera, setOpenMenuCamera] = useState(null);
 
     // Load user from localStorage and keep it synced
     useEffect(() => {
@@ -140,6 +141,20 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
         });
 
         onSaveFilters(newFilters);
+    };
+
+    const handleMoveCamera = (cameraName, direction) => {
+        const currentIndex = cameras.indexOf(cameraName);
+        if (currentIndex === -1) return;
+
+        const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+        if (newIndex < 0 || newIndex >= cameras.length) return;
+
+        const newCameras = [...cameras];
+        [newCameras[currentIndex], newCameras[newIndex]] = [newCameras[newIndex], newCameras[currentIndex]];
+
+        // Save the reordered cameras array along with filters
+        onSaveFilters(filters, newCameras);
     };
 
     // Don't show sidebar if not authenticated at all
@@ -301,11 +316,48 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
                     <>
                         <h4>Cameras</h4>
                         <ul>
-                            {cameras.map(camera => (
+                            {cameras.map((camera, index) => (
                                 <li key={camera} className={activeScope === camera ? 'active' : ''}>
-                                    <button onClick={() => onSelectScope(camera)}>
+                                    <button
+                                        className="filter-name"
+                                        onClick={() => onSelectScope(camera)}
+                                    >
                                         {camera}
                                     </button>
+                                    <button
+                                        className="filter-menu-btn"
+                                        onClick={(e) => {
+                                            e.stopPropagation();
+                                            setOpenMenuCamera(openMenuCamera === camera ? null : camera);
+                                        }}
+                                        title="Camera options"
+                                    >
+                                        ⋮
+                                    </button>
+                                    {openMenuCamera === camera && (
+                                        <div className="filter-dropdown">
+                                            {index > 0 && (
+                                                <button
+                                                    onClick={() => {
+                                                        handleMoveCamera(camera, 'up');
+                                                        setOpenMenuCamera(null);
+                                                    }}
+                                                >
+                                                    ↑ Up
+                                                </button>
+                                            )}
+                                            {index < cameras.length - 1 && (
+                                                <button
+                                                    onClick={() => {
+                                                        handleMoveCamera(camera, 'down');
+                                                        setOpenMenuCamera(null);
+                                                    }}
+                                                >
+                                                    ↓ Down
+                                                </button>
+                                            )}
+                                        </div>
+                                    )}
                                 </li>
                             ))}
                         </ul>

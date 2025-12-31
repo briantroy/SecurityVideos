@@ -243,28 +243,38 @@ function App() {
         setIsDarkMode(!isDarkMode);
     };
 
-    // Handler to save filters after any modification (create/update/delete/reorder)
-    const handleSaveFilters = useCallback(async (updatedFilters) => {
+    // Handler to save filters and/or cameras after any modification (create/update/delete/reorder)
+    const handleSaveFilters = useCallback(async (updatedFilters, updatedCameras = null) => {
         // Store previous state for rollback
         const prevFilters = filters;
         const prevOrder = filterOrder;
+        const prevCameras = cameras;
+
+        // Determine what to update
+        const camerasToSave = updatedCameras || cameras;
 
         // Optimistic update
         setFilters(updatedFilters);
         setFilterOrder(Object.keys(updatedFilters));
+        if (updatedCameras) {
+            setCameras(updatedCameras);
+        }
 
         try {
-            // Save both cameras and filters (cameras unchanged, only filters modified)
-            await saveCameraConfig(cameras, updatedFilters);
+            // Save both cameras and filters
+            await saveCameraConfig(camerasToSave, updatedFilters);
             // Success - optimistic update was correct
-            console.log('Filters saved successfully');
+            console.log('Configuration saved successfully');
         } catch (error) {
             // Rollback on failure
             setFilters(prevFilters);
             setFilterOrder(prevOrder);
+            if (updatedCameras) {
+                setCameras(prevCameras);
+            }
 
-            console.error('Failed to save filters:', error);
-            alert(`Failed to save filters: ${error.message}`);
+            console.error('Failed to save configuration:', error);
+            alert(`Failed to save configuration: ${error.message}`);
         }
     }, [cameras, filters, filterOrder]);
 
