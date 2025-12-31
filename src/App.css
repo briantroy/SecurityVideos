@@ -800,6 +800,7 @@ html, body {
 .sidebar-nav li.active > button:not(.filter-menu-btn) {
   background-color: var(--accent-primary);
   font-weight: bold;
+  border-radius: 8px;
 }
 
 .sidebar-footer {
@@ -1354,6 +1355,7 @@ html, body {
   justify-content: space-between;
   align-items: center;
   margin-top: 20px;
+  margin-bottom: 10px;
 }
 
 .groups-header h4 {
@@ -1361,19 +1363,20 @@ html, body {
 }
 
 .add-filter-btn {
-  background: var(--accent-primary);
-  color: white;
-  border: none;
-  padding: 4px 10px;
+  background: transparent;
+  color: var(--accent-primary);
+  border: 1px solid var(--accent-primary);
+  padding: 3px 9px;
   border-radius: 4px;
   cursor: pointer;
   font-size: 12px;
   font-weight: 500;
-  transition: background-color 0.2s ease;
+  transition: all 0.2s ease;
 }
 
 .add-filter-btn:hover {
-  background: var(--accent-primary-hover);
+  background: var(--accent-primary);
+  color: white;
 }
 
 .sidebar nav ul li {
@@ -1391,7 +1394,7 @@ html, body {
 .sidebar-nav li .filter-menu-btn {
   background: transparent;
   border: none;
-  color: var(--sidebar-secondary-text);
+  color: var(--accent-primary);
   cursor: pointer;
   padding: 2px;
   margin: 0;
@@ -1399,10 +1402,12 @@ html, body {
   min-width: 28px;
   max-width: 28px;
   height: 28px;
-  font-size: 20px;
+  font-size: 18px;
+  font-weight: 900;
   line-height: 1;
-  opacity: 0.6;
-  transition: opacity 0.2s ease;
+  opacity: 0.8;
+  transition: all 0.2s ease;
+  text-shadow: 0.5px 0 0 currentColor, -0.5px 0 0 currentColor;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
@@ -1411,6 +1416,7 @@ html, body {
 
 .filter-menu-btn:hover {
   opacity: 1;
+  transform: scale(1.1);
 }
 
 .filter-dropdown {
