@@ -540,7 +540,7 @@ html, body {
     background: var(--media-viewer-bg);
   }
 }
-@media (max-width: 600px) {
+@media (max-width: 1024px) {
   .sidebar {
     width: 38px;
     min-width: 38px;
@@ -1389,6 +1389,15 @@ html, body {
 .filter-name {
   flex: 1;
   text-align: left;
+  min-width: 0;
+  overflow: hidden;
+}
+
+.camera-name-text {
+  display: block;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .sidebar-nav li .filter-menu-btn {
@@ -1707,11 +1716,13 @@ html, body {
 /* Temperature Display in Sidebar */
 .camera-temperature {
   color: var(--sidebar-secondary-text);
-  font-size: 0.85em;
-  margin-left: 0.3em;
+  font-size: 0.75em;
   cursor: pointer;
   transition: color 0.2s ease;
   white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0 4px;
 }
 
 .camera-temperature:hover {
@@ -1898,17 +1909,30 @@ html, body {
     max-height: 95vh;
   }
 
+  .temperature-modal-header {
+    padding: 15px;
+  }
+
   .temperature-modal-header h3 {
     font-size: 1.2rem;
+  }
+
+  .current-temperature {
+    font-size: 0.95rem;
   }
 
   .current-temperature .temp-value {
     font-size: 1.5rem;
   }
 
+  .temperature-modal-body {
+    padding: 15px;
+  }
+
   .temperature-chart-container {
-    height: 250px;
+    height: auto;
     min-height: 200px;
+    padding: 10px;
   }
 
   .time-range-btn {
@@ -1917,8 +1941,33 @@ html, body {
   }
 }
 
-@media (min-width: 601px) and (max-width: 1190px) {
+@media (min-width: 601px) and (max-width: 1024px) {
+  .temperature-modal {
+    width: 92%;
+  }
+
+  .temperature-modal-header h3 {
+    font-size: 1.3rem;
+  }
+
+  .current-temperature .temp-value {
+    font-size: 1.6rem;
+  }
+
   .temperature-chart-container {
-    height: 300px;
+    height: auto;
+    min-height: 250px;
+  }
+
+  .time-range-btn {
+    padding: 7px 14px;
+    font-size: 0.9rem;
+  }
+}
+
+@media (min-width: 1025px) and (max-width: 1190px) {
+  .temperature-chart-container {
+    height: auto;
+    min-height: 280px;
   }
 }

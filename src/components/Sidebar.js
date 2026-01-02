@@ -346,20 +346,20 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
                                         className="filter-name"
                                         onClick={() => onSelectScope(camera)}
                                     >
-                                        {camera}
-                                        {temperatures[camera] && (
-                                            <span
-                                                className="camera-temperature"
-                                                onClick={(e) => {
-                                                    e.stopPropagation();
-                                                    setSelectedTempCamera(camera);
-                                                }}
-                                                title="Click to view temperature history"
-                                            >
-                                                ({temperatures[camera].temperature}°{temperatures[camera].unit})
-                                            </span>
-                                        )}
+                                        <span className="camera-name-text">{camera}</span>
                                     </button>
+                                    {temperatures[camera] && (
+                                        <span
+                                            className="camera-temperature"
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedTempCamera(camera);
+                                            }}
+                                            title="Click to view temperature history"
+                                        >
+                                            ({temperatures[camera].temperature}°{temperatures[camera].unit})
+                                        </span>
+                                    )}
                                     <button
                                         className="filter-menu-btn"
                                         onClick={(e) => {
