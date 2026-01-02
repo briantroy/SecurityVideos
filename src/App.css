@@ -1771,6 +1771,8 @@ html, body {
   display: flex;
   flex-direction: column;
   gap: 20px;
+  min-height: 0;
+  overflow: hidden;
 }
 
 /* Time Range Buttons */
@@ -1812,13 +1814,14 @@ html, body {
 
 /* Chart Container */
 .temperature-chart-container {
-  flex: 1;
+  width: 100%;
   min-height: 250px;
   height: 400px;
   background: var(--bg-secondary);
   border-radius: 4px;
   padding: 15px;
   border: 1px solid var(--border-color);
+  position: relative;
 }
 
 /* Loading and Error States */
