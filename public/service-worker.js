@@ -1,4 +1,4 @@
-const CACHE_NAME = 'security-videos-cache-v19'; // Increment this on each deployment - v14: dark mode support
+const CACHE_NAME = 'security-videos-cache-v20'; // Increment this on each deployment - v14: dark mode support
 const urlsToCache = [
   '/',
   '/index.html',
