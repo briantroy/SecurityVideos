@@ -7,6 +7,13 @@ function TemperatureModal({ cameraName, currentTemp, onClose }) {
     const [historyData, setHistoryData] = useState([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [chartReady, setChartReady] = useState(false);
+
+    // Delay chart rendering until modal is mounted
+    useEffect(() => {
+        const timer = setTimeout(() => setChartReady(true), 100);
+        return () => clearTimeout(timer);
+    }, []);
 
     useEffect(() => {
         const fetchHistory = async () => {
@@ -147,49 +154,49 @@ function TemperatureModal({ cameraName, currentTemp, onClose }) {
                             </div>
                         )}
 
-                        {!loading && !error && historyData.length > 0 && (
-                            <ResponsiveContainer width="100%" height="100%">
-                                <LineChart
-                                    data={formattedData}
-                                    margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
-                                >
-                                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
-                                    <XAxis
-                                        dataKey="time"
-                                        stroke="var(--text-secondary)"
-                                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-                                        tickFormatter={formatXAxisTime}
-                                    />
-                                    <YAxis
-                                        stroke="var(--text-secondary)"
-                                        tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
-                                        label={{
-                                            value: `Temperature (°${unit})`,
-                                            angle: -90,
-                                            position: 'insideLeft',
-                                            fill: 'var(--text-primary)'
-                                        }}
-                                        domain={['auto', 'auto']}
-                                    />
-                                    <Tooltip
-                                        contentStyle={{
-                                            backgroundColor: 'var(--bg-tertiary)',
-                                            border: '1px solid var(--border-color)',
-                                            borderRadius: '4px',
-                                            color: 'var(--text-primary)'
-                                        }}
-                                        formatter={(value) => [`${value}°${unit}`, 'Temperature']}
-                                        labelFormatter={formatTooltipLabel}
-                                    />
-                                    <Line
-                                        type="monotone"
-                                        dataKey="temperature"
-                                        stroke="var(--accent-primary)"
-                                        strokeWidth={2}
-                                        dot={{ fill: 'var(--accent-primary)', r: 3 }}
-                                        activeDot={{ r: 5 }}
-                                    />
-                                </LineChart>
+                        {!loading && !error && historyData.length > 0 && chartReady && (
+                            <ResponsiveContainer width="99%" height={350}>
+                                    <LineChart
+                                        data={formattedData}
+                                        margin={{ top: 5, right: 20, left: 0, bottom: 5 }}
+                                    >
+                                        <CartesianGrid strokeDasharray="3 3" stroke="var(--border-color)" />
+                                        <XAxis
+                                            dataKey="time"
+                                            stroke="var(--text-secondary)"
+                                            tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                                            tickFormatter={formatXAxisTime}
+                                        />
+                                        <YAxis
+                                            stroke="var(--text-secondary)"
+                                            tick={{ fill: 'var(--text-secondary)', fontSize: 12 }}
+                                            label={{
+                                                value: `Temperature (°${unit})`,
+                                                angle: -90,
+                                                position: 'insideLeft',
+                                                fill: 'var(--text-primary)'
+                                            }}
+                                            domain={['auto', 'auto']}
+                                        />
+                                        <Tooltip
+                                            contentStyle={{
+                                                backgroundColor: 'var(--bg-tertiary)',
+                                                border: '1px solid var(--border-color)',
+                                                borderRadius: '4px',
+                                                color: 'var(--text-primary)'
+                                            }}
+                                            formatter={(value) => [`${value}°${unit}`, 'Temperature']}
+                                            labelFormatter={formatTooltipLabel}
+                                        />
+                                        <Line
+                                            type="monotone"
+                                            dataKey="temperature"
+                                            stroke="var(--accent-primary)"
+                                            strokeWidth={2}
+                                            dot={{ fill: 'var(--accent-primary)', r: 3 }}
+                                            activeDot={{ r: 5 }}
+                                        />
+                                    </LineChart>
                             </ResponsiveContainer>
                         )}
                     </div>
