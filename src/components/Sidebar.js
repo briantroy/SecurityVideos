@@ -1,6 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import FilterEditModal from './FilterEditModal';
 import ConfirmDialog from './ConfirmDialog';
+import TemperatureModal from './TemperatureModal';
+import { getLatestTemperatures } from '../api';
 
 function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut, isOpen, onToggle, currentScope, userToken, isDarkMode, onToggleDarkMode, onSaveFilters }) {
     const [localUser, setLocalUser] = useState(null);
@@ -12,6 +14,8 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
     const [showDeleteConfirm, setShowDeleteConfirm] = useState(null);
     const [openMenuFilter, setOpenMenuFilter] = useState(null);
     const [openMenuCamera, setOpenMenuCamera] = useState(null);
+    const [temperatures, setTemperatures] = useState({});
+    const [selectedTempCamera, setSelectedTempCamera] = useState(null);
 
     // Load user from localStorage and keep it synced
     useEffect(() => {
@@ -35,6 +39,26 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
             window.removeEventListener('storage', loadUserFromStorage);
         };
     }, []);
+
+    // Fetch latest temperatures for cameras
+    useEffect(() => {
+        if (!userToken) return;
+
+        const fetchTemperatures = async () => {
+            try {
+                const data = await getLatestTemperatures();
+                setTemperatures(data.cameras || {});
+            } catch (error) {
+                console.warn('Failed to fetch temperatures:', error);
+                // Don't alert - temperature is optional feature
+            }
+        };
+
+        fetchTemperatures(); // Initial fetch
+        const interval = setInterval(fetchTemperatures, 5 * 60 * 1000); // Every 5 minutes
+
+        return () => clearInterval(interval);
+    }, [userToken]);
 
     // Initialize date/time picker with current date/time or search scope values
     useEffect(() => {
@@ -323,6 +347,18 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
                                         onClick={() => onSelectScope(camera)}
                                     >
                                         {camera}
+                                        {temperatures[camera] && (
+                                            <span
+                                                className="camera-temperature"
+                                                onClick={(e) => {
+                                                    e.stopPropagation();
+                                                    setSelectedTempCamera(camera);
+                                                }}
+                                                title="Click to view temperature history"
+                                            >
+                                                ({temperatures[camera].temperature}°{temperatures[camera].unit})
+                                            </span>
+                                        )}
                                     </button>
                                     <button
                                         className="filter-menu-btn"
@@ -401,6 +437,14 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
                     message={`Are you sure you want to delete "${showDeleteConfirm}"? This cannot be undone.`}
                     onConfirm={() => handleDeleteFilter(showDeleteConfirm)}
                     onCancel={() => setShowDeleteConfirm(null)}
+                />
+            )}
+
+            {selectedTempCamera && (
+                <TemperatureModal
+                    cameraName={selectedTempCamera}
+                    currentTemp={temperatures[selectedTempCamera]}
+                    onClose={() => setSelectedTempCamera(null)}
                 />
             )}
         </aside>

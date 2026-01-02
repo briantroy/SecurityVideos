@@ -254,3 +254,21 @@ export const markEventAsViewed = async (userId, eventId, timestamp) => {
         console.warn('Failed to mark event as viewed:', err);
     });
 };
+
+/**
+ * Fetches the latest temperature readings for all cameras.
+ * @returns {Promise<object>} - Returns { cameras: {CameraName: {temperature, timestamp, unit}}, count }
+ */
+export const getLatestTemperatures = () => {
+    return fetchFromApi('/temperatures/latest');
+};
+
+/**
+ * Fetches temperature history for a specific camera.
+ * @param {string} cameraName - The name of the camera.
+ * @param {number} hours - Number of hours of history to fetch (default: 24).
+ * @returns {Promise<object>} - Returns { camera_name, hours, count, readings: [{timestamp, temperature, unit}] }
+ */
+export const getTemperatureHistory = (cameraName, hours = 24) => {
+    return fetchFromApi('/temperatures/history', { camera: cameraName, hours });
+};
