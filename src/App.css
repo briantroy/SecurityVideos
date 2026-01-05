@@ -560,10 +560,10 @@ html, body {
   }
   .sidebar-nav li button {
     padding: 10px 8px;
-    font-size: 1rem;
+    font-size: 0.95rem;
   }
   .signout-button {
-    font-size: 1rem;
+    font-size: 0.95rem;
     padding: 8px;
   }
 }
@@ -788,7 +788,7 @@ html, body {
   color: var(--sidebar-text);
   text-align: left;
   cursor: pointer;
-  font-size: clamp(1rem, 2vw, 1.4rem);
+  font-size: clamp(0.85rem, 1.8vw, 1.1rem);
   transition: background-color 0.2s ease;
 }
 
@@ -1728,6 +1728,30 @@ html, body {
 .camera-temperature:hover {
   color: var(--accent-primary);
   text-decoration: underline;
+}
+
+/* Battery Display in Sidebar */
+.camera-battery {
+  font-size: 0.85em;
+  cursor: pointer;
+  white-space: nowrap;
+  flex-shrink: 0;
+  align-self: center;
+  padding: 0 4px;
+  transition: transform 0.2s ease, filter 0.2s ease;
+  display: inline-block;
+}
+
+.camera-battery:hover {
+  transform: scale(1.15);
+}
+
+.battery-ok {
+  filter: grayscale(0%) hue-rotate(80deg);
+}
+
+.battery-low {
+  filter: grayscale(0%) hue-rotate(0deg) brightness(1.2);
 }
 
 /* Temperature Modal */

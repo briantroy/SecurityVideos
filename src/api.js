@@ -272,3 +272,21 @@ export const getLatestTemperatures = () => {
 export const getTemperatureHistory = (cameraName, hours = 24) => {
     return fetchFromApi('/temperatures/history', { camera: cameraName, hours });
 };
+
+/**
+ * Fetches the latest battery status for all cameras.
+ * @returns {Promise<object>} - Returns { cameras: {CameraName: {battery, battery_voltage, timestamp}}, count }
+ */
+export const getLatestBatteryStatus = () => {
+    return fetchFromApi('/battery/latest');
+};
+
+/**
+ * Fetches battery history for a specific camera.
+ * @param {string} cameraName - The name of the camera.
+ * @param {number} hours - Number of hours of history to fetch (default: 24).
+ * @returns {Promise<object>} - Returns { camera_name, hours, count, readings: [{timestamp, battery, battery_voltage}] }
+ */
+export const getBatteryHistory = (cameraName, hours = 24) => {
+    return fetchFromApi('/battery/history', { camera: cameraName, hours });
+};

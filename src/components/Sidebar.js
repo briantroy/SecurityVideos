@@ -2,7 +2,8 @@ import React, { useState, useEffect } from 'react';
 import FilterEditModal from './FilterEditModal';
 import ConfirmDialog from './ConfirmDialog';
 import TemperatureModal from './TemperatureModal';
-import { getLatestTemperatures } from '../api';
+import BatteryModal from './BatteryModal';
+import { getLatestTemperatures, getLatestBatteryStatus } from '../api';
 
 function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut, isOpen, onToggle, currentScope, userToken, isDarkMode, onToggleDarkMode, onSaveFilters }) {
     const [localUser, setLocalUser] = useState(null);
@@ -16,6 +17,8 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
     const [openMenuCamera, setOpenMenuCamera] = useState(null);
     const [temperatures, setTemperatures] = useState({});
     const [selectedTempCamera, setSelectedTempCamera] = useState(null);
+    const [batteries, setBatteries] = useState({});
+    const [selectedBatteryCamera, setSelectedBatteryCamera] = useState(null);
 
     // Load user from localStorage and keep it synced
     useEffect(() => {
@@ -56,6 +59,26 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
 
         fetchTemperatures(); // Initial fetch
         const interval = setInterval(fetchTemperatures, 5 * 60 * 1000); // Every 5 minutes
+
+        return () => clearInterval(interval);
+    }, [userToken]);
+
+    // Fetch latest battery status for cameras
+    useEffect(() => {
+        if (!userToken) return;
+
+        const fetchBatteries = async () => {
+            try {
+                const data = await getLatestBatteryStatus();
+                setBatteries(data.cameras || {});
+            } catch (error) {
+                console.warn('Failed to fetch battery status:', error);
+                // Don't alert - battery is optional feature
+            }
+        };
+
+        fetchBatteries(); // Initial fetch
+        const interval = setInterval(fetchBatteries, 5 * 60 * 1000); // Every 5 minutes
 
         return () => clearInterval(interval);
     }, [userToken]);
@@ -360,6 +383,18 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
                                             ({temperatures[camera].temperature}°{temperatures[camera].unit})
                                         </span>
                                     )}
+                                    {batteries[camera] && (
+                                        <span
+                                            className={`camera-battery ${batteries[camera].battery === 'ok' ? 'battery-ok' : 'battery-low'}`}
+                                            onClick={(e) => {
+                                                e.stopPropagation();
+                                                setSelectedBatteryCamera(camera);
+                                            }}
+                                            title={`Battery: ${batteries[camera].battery_voltage}V - Click to view history`}
+                                        >
+                                            🔋
+                                        </span>
+                                    )}
                                     <button
                                         className="filter-menu-btn"
                                         onClick={(e) => {
@@ -445,6 +480,14 @@ function Sidebar({ user, cameras, filters, filterOrder, onSelectScope, onSignOut
                     cameraName={selectedTempCamera}
                     currentTemp={temperatures[selectedTempCamera]}
                     onClose={() => setSelectedTempCamera(null)}
+                />
+            )}
+
+            {selectedBatteryCamera && (
+                <BatteryModal
+                    cameraName={selectedBatteryCamera}
+                    currentBattery={batteries[selectedBatteryCamera]}
+                    onClose={() => setSelectedBatteryCamera(null)}
                 />
             )}
         </aside>
